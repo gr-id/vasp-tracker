@@ -1191,6 +1191,19 @@ renderList();
 /* ════════════════════════════════════════════════════
    관계도 페이지 — D3 Force-Directed Graph
 ════════════════════════════════════════════════════ */
+
+/* 트래블룰 솔루션 매핑 (특금법 시행령 §10의6 — 100만원 이상 이전 시 정보제공 의무) */
+const TRAVEL_RULE = {
+  '업비트':'CODE',     '빗썸':'CODE',     '코인원':'CODE',     '코빗':'CODE',
+  '고팍스':'CODE',     '플라이빗':'CODE', '지닥(GDAC)':'CODE', '프로비트':'CODE',
+  '후오비코리아':'CODE', '코어닥스':'CODE', '플랫타익스체인지':'CODE', '한빗코':'CODE',
+  '비블록':'CODE',     '비트레이드':'CODE', '빗크몬':'CODE',   '코인엔코인':'CODE',
+  '보라비트':'CODE',   '캐셔레스트':'CODE', '텐앤텐':'CODE',  '에이프로빗':'CODE',
+  '오아시스거래소':'CODE', '큐비트':'CODE', '코인빗':'CODE',  'BTX':'CODE',
+  '포블':'CODE',       '크립토닷컴':'VerifyVASP',
+  '하이퍼리즘':'CODE', '델리오':'CODE',   '페이코인':'CODE',  '오하이월렛':'CODE',
+};
+
 let graphBuilt = false;
 
 const GNODES = [
@@ -1229,6 +1242,9 @@ const GNODES = [
   { id:'인피닛블록',   group:'vasp_c', label:'인피닛블록', sub:'수탁·관리' },
   { id:'비댁스',       group:'vasp_c', label:'비댁스',     sub:'수탁·관리' },
   { id:'디에스알브이랩스', group:'vasp_c', label:'DSRV랩스', sub:'수탁·관리' },
+  { id:'크립토닷컴',   group:'vasp_e', label:'크립토닷컴', sub:'글로벌 거래소' },
+  { id:'CODE',            group:'tr',     label:'CODE',     sub:'트래블룰 솔루션' },
+  { id:'VerifyVASP',      group:'tr',     label:'VerifyVASP', sub:'트래블룰 솔루션' },
 ];
 
 const GLINKS = [
@@ -1264,16 +1280,24 @@ const GLINKS = [
   { s:'KODA',         t:'업비트',    type:'서비스연계', detail:'기관 수탁고객 매매 연동' },
   { s:'KDAC',         t:'코빗',      type:'서비스연계', detail:'수탁 고객 원화 거래 연계' },
   { s:'위허브',       t:'플라이빗',  type:'지분투자',  detail:'지분 40% 인수 계약 · 최대주주 취득 예정 (2026.05.28)' },
+  { s:'업비트',   t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 창립 멤버 (두나무 주도, 2022.03)' },
+  { s:'빗썸',     t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
+  { s:'코인원',   t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
+  { s:'코빗',     t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
+  { s:'고팍스',   t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
+  { s:'플라이빗', t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
+  { s:'크립토닷컴', t:'VerifyVASP', type:'트래블룰', detail:'글로벌 법인 — VerifyVASP 국제 네트워크 사용' },
 ];
 
 const GC = {
   bank:'#3B82F6', sec:'#A78BFA', corp:'#F59E0B',
-  vasp_e:'#10B981', vasp_c:'#F87171'
+  vasp_e:'#10B981', vasp_c:'#F87171', tr:'#F97316'
 };
 const LC = {
   '지분투자':'#10B981', '실명계좌':'#3B82F6',
   '파트너십':'#F59E0B', '설립관계':'#F87171',
-  '투자':'#A78BFA',     '서비스연계':'#64748B'
+  '투자':'#A78BFA',     '서비스연계':'#64748B',
+  '트래블룰':'#F97316'
 };
 
 function buildGraph() {
@@ -1298,8 +1322,9 @@ function buildGraph() {
       {id:'bank',   label:'은행',         col:GC.bank},
       {id:'sec',    label:'증권·금융투자', col:GC.sec},
       {id:'corp',   label:'기업·VC',      col:GC.corp},
-      {id:'vasp_e', label:'VASP 거래소',  col:GC.vasp_e},
-      {id:'vasp_c', label:'VASP 수탁사',  col:GC.vasp_c},
+      {id:'vasp_e', label:'VASP 거래소',    col:GC.vasp_e},
+      {id:'vasp_c', label:'VASP 수탁사',    col:GC.vasp_c},
+      {id:'tr',     label:'트래블룰 솔루션', col:GC.tr},
     ];
     filterWrap.innerHTML =
       `<div style="font-size:10px;color:#4E5260;font-family:'Space Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">노드 유형</div>` +
@@ -1353,6 +1378,7 @@ function initGraph() {
   const sim = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>{
       if (d.type==='실명계좌') return 120;
+      if (d.type==='트래블룰') return 100;
       if (d.type==='지분투자') return 140;
       return 170;
     }).strength(0.5))
@@ -1367,7 +1393,7 @@ function initGraph() {
     .attr('stroke', d=>LC[d.type]||'#555')
     .attr('stroke-width', d=>d.type==='지분투자'?2.2:1.3)
     .attr('stroke-opacity', 0.55)
-    .attr('stroke-dasharray', d=>(d.type==='파트너십'||d.type==='서비스연계')?'5,3':null)
+    .attr('stroke-dasharray', d=>(d.type==='파트너십'||d.type==='서비스연계')?'5,3':d.type==='트래블룰'?'2,2':null)
     .attr('marker-end', d=>`url(#arr-${d.type.replace(/\W/g,'')})`);
 
   const nodeSel = container.append('g').selectAll('g')
@@ -1378,7 +1404,7 @@ function initGraph() {
       .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y; })
       .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
 
-  const rOf = d => (['vasp_e','vasp_c'].includes(d.group) ? 28 : 22);
+  const rOf = d => (['vasp_e','vasp_c'].includes(d.group) ? 28 : d.group==='tr' ? 24 : 22);
 
   nodeSel.append('circle')
     .attr('r', rOf)
@@ -1696,6 +1722,7 @@ function openDetail(name) {
         <div class="dp-kv-row"><div class="dp-key">고객 유형</div><div class="dp-val">${b2Label}</div></div>
         <div class="dp-kv-row"><div class="dp-key">원화마켓</div><div class="dp-val">${d.won ? '✓ 보유 (실명계좌)' : '없음 (코인마켓 전용)'}</div></div>
         <div class="dp-kv-row"><div class="dp-key">은행 연계</div><div class="dp-val">${d.bank ? '✓ 있음' : '없음'}</div></div>
+        ${TRAVEL_RULE[d.name] ? `<div class="dp-kv-row"><div class="dp-key">트래블룰</div><div class="dp-val" style="color:#F97316;font-weight:600">${TRAVEL_RULE[d.name]}</div></div>` : ''}
       </div>
     </div>
 
