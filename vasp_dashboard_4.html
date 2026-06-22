@@ -1042,15 +1042,19 @@ function buildAnalytics() {
   const TYPE_COLORS = { '가':'#3B82F6','나':'#06B6D4','다':'#F59E0B','라':'#10B981','마':'#A78BFA' };
   const TYPE_LABELS = { '가':'가. 매도·매수','나':'나. 교환','다':'다. 이전','라':'라. 보관·관리','마':'마. 중개·알선' };
 
+  /* 유효 사업자만 분석 기준으로 사용 */
+  const LIVE = DATA.filter(d => !d.expired);
+  const LIVE_N = LIVE.length;
+
   /* Chart 1: 사업자 분류 */
   const catCnt = { e:0, c:0, m:0 };
-  DATA.forEach(d => catCnt[d.cat]++);
+  LIVE.forEach(d => catCnt[d.cat]++);
   const catLabels = ['거래소','수탁·관리','복합'];
   const catColors = [COLS.e, COLS.c, COLS.m];
   new Chart(document.getElementById('c-cat'), {
     type:'doughnut',
     data:{ labels:catLabels, datasets:[{ data:[catCnt.e,catCnt.c,catCnt.m], backgroundColor:catColors, borderColor:'#0B0D11', borderWidth:2, hoverOffset:4 }] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>`${ctx.label}: ${ctx.raw}개사 (${Math.round(ctx.raw/TOTAL*100)}%)` } } } }
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>`${ctx.label}: ${ctx.raw}개사 (${Math.round(ctx.raw/LIVE_N*100)}%)` } } } }
   });
   document.getElementById('leg-cat').innerHTML = catLabels.map((l,i) =>
     `<span class="cli"><span class="cli-sq" style="background:${catColors[i]}"></span>${l} ${[catCnt.e,catCnt.c,catCnt.m][i]}개</span>`
@@ -1058,7 +1062,7 @@ function buildAnalytics() {
 
   /* Chart 2: 신고유형 건수 (가~마) */
   const typeCnt = { '가':0,'나':0,'다':0,'라':0,'마':0 };
-  DATA.forEach(d => d.types.forEach(t => typeCnt[t] = (typeCnt[t]||0)+1));
+  LIVE.forEach(d => d.types.forEach(t => typeCnt[t] = (typeCnt[t]||0)+1));
   const typeKeys = Object.keys(typeCnt);
   const typeColors = typeKeys.map(k => TYPE_COLORS[k]);
   new Chart(document.getElementById('c-types'), {
@@ -1072,7 +1076,7 @@ function buildAnalytics() {
 
   /* Chart 3: B2B/B2C/mix */
   const modCnt = { b2b:0, b2c:0, mix:0 };
-  DATA.forEach(d => modCnt[d.b2]++);
+  LIVE.forEach(d => modCnt[d.b2]++);
   const modLabels = ['B2B (기업·기관)','B2C (개인)','혼합'];
   const modColors = [COLS.b2b, COLS.b2c, COLS.mix];
   new Chart(document.getElementById('c-model'), {
@@ -1099,15 +1103,15 @@ function buildAnalytics() {
     {label:'B2C (개인 이용자)',    count:modCnt.b2c, color:COLS.b2c},
     {label:'혼합 (B2B+B2C)',      count:modCnt.mix, color:COLS.mix},
   ]);
-  const wonY = DATA.filter(d=>d.won).length;
+  const wonY = LIVE.filter(d=>d.won).length;
   makeBar('wonBar','wonItems',[
-    {label:'원화마켓 보유 (실명계좌)', count:wonY, color:'#3B82F6'},
-    {label:'코인마켓 전용',            count:TOTAL-wonY, color:'#1F2937'},
+    {label:'원화마켓 보유 (실명계좌)', count:wonY,        color:'#3B82F6'},
+    {label:'코인마켓 전용',            count:LIVE_N-wonY, color:'#1F2937'},
   ]);
-  const bankY = DATA.filter(d=>d.bank).length;
+  const bankY = LIVE.filter(d=>d.bank).length;
   makeBar('bankBar','bankItems',[
-    {label:'은행 연계 있음', count:bankY,      color:'#10B981'},
-    {label:'독립 운영',      count:TOTAL-bankY, color:'#1F2937'},
+    {label:'은행 연계 있음', count:bankY,         color:'#10B981'},
+    {label:'독립 운영',      count:LIVE_N-bankY,  color:'#1F2937'},
   ]);
 
   /* Cohort by year */
@@ -1175,7 +1179,7 @@ function buildAnalytics() {
 
   /* Tag cloud */
   const tagFreq = {};
-  DATA.forEach(d => (d.tags||[]).forEach(t => tagFreq[t]=(tagFreq[t]||0)+1));
+  LIVE.forEach(d => (d.tags||[]).forEach(t => tagFreq[t]=(tagFreq[t]||0)+1));
   const sorted2 = Object.entries(tagFreq).sort((a,b) => b[1]-a[1]);
   const max2 = sorted2[0][1];
   document.getElementById('tagCloud').innerHTML = sorted2.map(([t,n]) => {
