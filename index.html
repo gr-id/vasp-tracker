@@ -315,6 +315,14 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 .tl-scroll-wrap::-webkit-scrollbar-thumb { background:var(--border-h); border-radius:2px; }
 #tl-canvas { display:block; height:100%; }
 #tl-tooltip { display:none; position:fixed; z-index:999; background:#13161C; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px 14px; max-width:260px; pointer-events:none; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+.fin-note { font-size:11px; color:var(--tm); margin-top:12px; line-height:1.7; }
+.fin-src { display:inline-block; font-size:9px; font-family:'Space Grotesk',sans-serif; font-weight:600; padding:2px 6px; border-radius:3px; letter-spacing:.05em; text-transform:uppercase; }
+.fin-src.dart { background:rgba(59,130,246,0.15); color:#60A5FA; }
+.fin-src.nice { background:rgba(167,139,250,0.15); color:#A78BFA; }
+.fin-src.self { background:rgba(245,158,11,0.15); color:#FCD34D; }
+.fin-profit { font-weight:600; }
+.fin-profit.pos { color:#34D399; }
+.fin-profit.neg { color:#F87171; }
 
 @media (max-width:600px) {
   .site-header { padding:0 1rem; gap:.75rem; }
@@ -481,7 +489,7 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
   <div class="analytics-wrap">
     <div class="analytics-hero">
       <h2>VASP 시장 구조 분석</h2>
-      <p>42개 신고수리 사업자를 라이선스 유형·서비스 모델·신고 시기별로 분석합니다.</p>
+      <p>유효 신고수리 사업자 28개사를 라이선스 유형·서비스 모델·신고 시기·재무 현황별로 분석합니다.</p>
     </div>
 
     <div class="section-title">01 — 사업자 분류 분포</div>
@@ -538,7 +546,7 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 
     <div class="timeline-card">
       <h3>라이선스 보유 기간 (현재까지)</h3>
-      <div class="tc-sub">신고수리일 기준 2025.01.23 현재까지 누적 기간</div>
+      <div class="tc-sub">신고수리일 기준 2026.05.29 현재까지 누적 기간</div>
       <div style="overflow-x:auto">
         <table class="tenure-table">
           <thead><tr>
@@ -556,6 +564,32 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
       <h3>태그 빈도 분석</h3>
       <div class="tc-sub">전체 사업자 태그 중 등장 빈도 기준 정렬</div>
       <div class="tag-cloud" id="tagCloud"></div>
+    </div>
+
+    <div class="section-title">05 — 기업 재무 현황</div>
+    <div class="timeline-card">
+      <h3>매출액 규모 비교 <span style="font-size:11px;font-weight:400;color:var(--tm);margin-left:6px">로그 스케일 · 억원 단위</span></h3>
+      <div class="tc-sub">DART 공시 기준 최신 사업연도. 좌측 선 색상: <span style="color:#34D399">녹색=영업이익</span> / <span style="color:#F87171">빨간=영업손실</span></div>
+      <div id="fin-chart" style="margin-top:16px;overflow-x:auto;min-height:320px"></div>
+      <p class="fin-note">* DSRV는 자체 발표 기준(미감사) &nbsp;· &nbsp;KDAC은 2023년 기준 &nbsp;· &nbsp;나머지는 2024년 기준<br>플라이빗·KODA·인피닛블록 등 재무 비공시 사업자는 제외</p>
+    </div>
+
+    <div class="timeline-card">
+      <h3>사업자별 재무 현황 상세</h3>
+      <div class="tc-sub">DART 전자공시·감사보고서·NICE평가정보 기준 &nbsp;(단위: 억원)</div>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table class="tenure-table">
+          <thead><tr>
+            <th>사업자</th>
+            <th style="text-align:right">기준연도</th>
+            <th style="text-align:right">매출액</th>
+            <th style="text-align:right">영업이익</th>
+            <th style="text-align:right">자본금</th>
+            <th style="text-align:center">출처</th>
+          </tr></thead>
+          <tbody id="finBody"></tbody>
+        </table>
+      </div>
     </div>
 
   </div>
@@ -1185,6 +1219,90 @@ function buildAnalytics() {
   document.getElementById('tagCloud').innerHTML = sorted2.map(([t,n]) => {
     const sz = 10 + Math.round((n/max2)*6);
     return `<span class="tc-tag" style="font-size:${sz}px">${t}<span class="tc-n">${n}</span></span>`;
+  }).join('');
+
+  /* ── 05 재무 현황 ── */
+  const FINANCIAL = [
+    { vasp:'업비트',  corp:'두나무(주)',              year:2024, rev:17316, op:11863,  cap:34.9,  src:'DART' },
+    { vasp:'빗썸',    corp:'(주)빗썸코리아',         year:2024, rev:4964,  op:1337,   cap:211.8, src:'DART' },
+    { vasp:'코인원',  corp:'(주)코인원',             year:2024, rev:442,   op:-61,    cap:null,  src:'DART' },
+    { vasp:'DSRV',    corp:'(주)디에스알브이랩스',   year:2024, rev:100,   op:30,     cap:null,  src:'자체발표' },
+    { vasp:'코빗',    corp:'(주)코빗',               year:2024, rev:87,    op:-168,   cap:29.2,  src:'DART' },
+    { vasp:'고팍스',  corp:'(주)스트리미',           year:2024, rev:80,    op:-30,    cap:0.9,   src:'NICE' },
+    { vasp:'비댁스',  corp:'비댁스(주)',             year:2024, rev:5.3,   op:-42.5,  cap:6.8,   src:'NICE' },
+    { vasp:'KDAC',    corp:'(주)한국디지털자산수탁', year:2023, rev:1.9,   op:-14,    cap:12,    src:'NICE' },
+  ];
+
+  const fmtRev = v => v >= 10000 ? `${(v/10000).toFixed(2)}조` : v >= 1000 ? `${(v/1000).toFixed(1)}천억` : `${v}억`;
+  const fmtOp  = v => (v > 0 ? '+' : '') + v.toLocaleString() + '억';
+
+  const fSorted = [...FINANCIAL].sort((a,b) => b.rev - a.rev);
+  const fc = document.getElementById('fin-chart');
+  if (fc && typeof d3 !== 'undefined') {
+    const fW = fc.offsetWidth || 680;
+    const fM = { t:8, r:110, b:36, l:76 };
+    const bH = 34, bGap = 10;
+    const fH = fSorted.length * (bH + bGap) + fM.t + fM.b;
+
+    const svgF = d3.select('#fin-chart').append('svg')
+      .attr('width', '100%').attr('viewBox', `0 0 ${fW} ${fH}`)
+      .attr('preserveAspectRatio', 'xMinYMid meet');
+
+    const xLog = d3.scaleLog().domain([0.8, 25000]).range([fM.l, fW - fM.r]).clamp(true);
+    const yB   = d3.scaleBand().domain(fSorted.map(d => d.vasp)).range([fM.t, fH - fM.b]).padding(0.22);
+
+    [1, 10, 100, 1000, 10000].forEach(t => {
+      svgF.append('line')
+        .attr('x1', xLog(t)).attr('x2', xLog(t)).attr('y1', fM.t).attr('y2', fH - fM.b)
+        .attr('stroke', 'rgba(255,255,255,0.05)').attr('stroke-width', 1);
+    });
+
+    fSorted.forEach(d => {
+      const x   = xLog(Math.max(d.rev, 0.8));
+      const y   = yB(d.vasp);
+      const h   = yB.bandwidth();
+      const col = d.op > 0 ? '#10B981' : '#EF4444';
+
+      svgF.append('rect').attr('x', fM.l).attr('y', y)
+        .attr('width', x - fM.l).attr('height', h)
+        .attr('fill', col + '18').attr('rx', 3);
+
+      svgF.append('rect').attr('x', fM.l).attr('y', y)
+        .attr('width', 3).attr('height', h)
+        .attr('fill', col).attr('rx', 1);
+
+      svgF.append('text').attr('x', x + 8).attr('y', y + h / 2)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-size', 11).attr('font-family', 'Space Grotesk,sans-serif')
+        .attr('fill', '#8A8E9A').text(fmtRev(d.rev));
+
+      svgF.append('text').attr('x', fM.l - 8).attr('y', y + h / 2)
+        .attr('dominant-baseline', 'middle').attr('text-anchor', 'end')
+        .attr('font-size', 12).attr('font-family', 'Noto Sans KR,sans-serif')
+        .attr('fill', '#C8C2B8').text(d.vasp);
+    });
+
+    svgF.append('g').attr('transform', `translate(0,${fH - fM.b})`)
+      .call(d3.axisBottom(xLog)
+        .tickValues([1, 10, 100, 1000, 10000])
+        .tickFormat(v => v >= 10000 ? '1조' : v >= 1000 ? `${v/1000}천억` : `${v}억`))
+      .call(g => g.select('.domain').attr('stroke', 'rgba(255,255,255,0.08)'))
+      .call(g => g.selectAll('.tick line').attr('stroke', 'rgba(255,255,255,0.08)'))
+      .call(g => g.selectAll('.tick text').attr('fill', '#4E5260').attr('font-size', 10)
+        .attr('font-family', 'Space Grotesk,sans-serif'));
+  }
+
+  const srcCls = { DART:'dart', NICE:'nice', '자체발표':'self' };
+  document.getElementById('finBody').innerHTML = fSorted.map(d => {
+    const opCls = d.op > 0 ? 'pos' : 'neg';
+    return `<tr>
+      <td><span class="tenure-name">${d.vasp}</span><br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
+      <td style="text-align:right;color:var(--tm)">${d.year}</td>
+      <td style="text-align:right;font-weight:600;color:#F0EEE8">${fmtRev(d.rev)}</td>
+      <td style="text-align:right"><span class="fin-profit ${opCls}">${fmtOp(d.op)}</span></td>
+      <td style="text-align:right;color:var(--tm)">${d.cap != null ? d.cap + '억' : '—'}</td>
+      <td style="text-align:center"><span class="fin-src ${srcCls[d.src]||''}">${d.src}</span></td>
+    </tr>`;
   }).join('');
 }
 
