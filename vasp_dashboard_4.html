@@ -222,8 +222,9 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 .news-main-header { display:flex; align-items:center; gap:10px; padding:.6rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0; }
 .news-main-title { font-family:'Space Grotesk',sans-serif; font-size:13.5px; font-weight:600; flex:1; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .news-list { flex:1; overflow-y:auto; }
-.news-item { display:flex; gap:1rem; padding:.9rem 1.25rem; border-bottom:1px solid var(--border); transition:background .12s; }
+.news-item { display:flex; gap:1rem; padding:.9rem 1.25rem; border-bottom:1px solid var(--border); transition:background .12s; cursor:pointer; }
 .news-item:hover { background:var(--surface); }
+.news-item:hover .ni-title { color:var(--accent); }
 .ni-left { width:70px; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:4px; padding-top:1px; }
 .ni-date { font-size:10px; font-family:'Space Grotesk',sans-serif; color:var(--tm); white-space:nowrap; }
 .ni-badge { font-size:9px; font-family:'Space Grotesk',sans-serif; font-weight:700; padding:2px 5px; border-radius:3px; letter-spacing:.04em; white-space:nowrap; }
@@ -1475,9 +1476,10 @@ function renderNews() {
   const catMap = Object.fromEntries(NEWS_CATS.map(c => [c.id, c]));
   list.innerHTML = f.map(n => {
     const cat = catMap[n.cat] || NEWS_CATS[0];
-    const chips = n.companies.map(co => `<span class="ni-chip" onclick="selectNewsCompanyByName('${co.replace(/'/g,"\\'")}')"> ${co}</span>`).join('');
+    const chips = n.companies.map(co => `<span class="ni-chip" onclick="event.stopPropagation();selectNewsCompanyByName('${co.replace(/'/g,"\\'")}')"> ${co}</span>`).join('');
     const d = n.date.replace(/-/g, '.');
-    return `<div class="news-item">
+    const esc = s => s.replace(/"/g,'&quot;');
+    return `<div class="news-item" onclick="openNewsArticle('${(n.url||'').replace(/'/g,"\\'")}','${esc(n.title)}','${esc(n.source)}')">
       <div class="ni-left">
         <span class="ni-date">${d}</span>
         <span class="ni-badge ${cat.cls}">${cat.label}</span>
@@ -1490,6 +1492,11 @@ function renderNews() {
       </div>
     </div>`;
   }).join('');
+}
+
+function openNewsArticle(url, title, source) {
+  const target = url || 'https://search.naver.com/search.naver?where=news&query=' + encodeURIComponent(title);
+  window.open(target, '_blank', 'noopener noreferrer');
 }
 
 function selectNewsCompanyByName(name) {
