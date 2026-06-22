@@ -107,6 +107,15 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 .gen-tag { font-size:10px; padding:2px 7px; border-radius:4px; background:transparent; color:var(--tm); border:1px solid var(--border); }
 .empty { grid-column:1/-1; text-align:center; padding:4rem 2rem; color:var(--tm); }
 
+/* ─── Expired / Active status ─── */
+.card.is-expired { opacity:0.48; }
+.card.is-expired:hover { opacity:0.72; border-color:rgba(239,68,68,0.25); }
+.badge-exp { display:inline-flex; align-items:center; gap:3px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#F87171; font-size:10px; padding:2px 8px; border-radius:3px; font-family:'Space Grotesk',sans-serif; letter-spacing:.03em; white-space:nowrap; flex-shrink:0; }
+.badge-live { display:inline-flex; align-items:center; gap:3px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#34D399; font-size:10px; padding:2px 8px; border-radius:3px; font-family:'Space Grotesk',sans-serif; letter-spacing:.03em; white-space:nowrap; flex-shrink:0; }
+.filter-sep { width:1px; height:20px; background:var(--border); margin:0 4px; align-self:center; }
+.filter-tab.t-exp.active { background:#EF4444; border-color:#EF4444; color:#fff; }
+.filter-tab.t-live.active { background:#10B981; border-color:#10B981; color:#fff; }
+
 /* ── ANALYTICS PAGE ── */
 .analytics-wrap { max-width:1200px; margin:0 auto; padding:2rem; }
 .analytics-hero { margin-bottom:2.5rem; }
@@ -332,14 +341,14 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
     <button class="nav-tab" onclick="showPage('news',this)">기사</button>
     <button class="nav-tab" onclick="showPage('timeline',this)">타임라인</button>
   </nav>
-  <div class="header-date">FIU · 2025.01.23 기준</div>
+  <div class="header-date">FIU · 2026.05.29 기준</div>
 </header>
 
 <!-- ══════════════════ LIST PAGE ══════════════════ -->
 <div id="page-list" class="page active">
   <section class="hero">
     <div class="hero-eyebrow">특정금융정보법 제7조 신고수리</div>
-    <h1 class="hero-title">국내 가상자산사업자<br>신고 현황 42개사</h1>
+    <h1 class="hero-title">국내 가상자산사업자<br>신고 현황 <span style="color:var(--accent)">28</span>개사 유효 · <span style="color:#F87171;font-size:0.72em">16개사 말소</span></h1>
     <p class="hero-sub">금융정보분석원(FIU) 신고수리 완료 사업자 전체 목록. 기업명·서비스·특장점·라이선스 유형을 확인하세요.</p>
   </section>
   <div class="metrics" id="metrics"></div>
@@ -359,6 +368,9 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
       <button class="filter-tab" onclick="setFilter(this,'e')">거래소</button>
       <button class="filter-tab t-c" onclick="setFilter(this,'c')">수탁·관리</button>
       <button class="filter-tab t-m" onclick="setFilter(this,'m')">복합</button>
+      <div class="filter-sep"></div>
+      <button class="filter-tab t-live" id="sb-live" onclick="setStatusFilter(this,'live')">유효</button>
+      <button class="filter-tab t-exp" id="sb-exp" onclick="setStatusFilter(this,'exp')">말소</button>
     </div>
     <span class="result-count" id="countLabel"></span>
   </div>
@@ -558,7 +570,7 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 const DATA = [
   /* ── 거래소 (원화마켓) ── */
   { name:"업비트",    corp:"두나무(주)",              service:"원화·코인 현물거래소",
-    ceo:"이석우", regNo:"119-86-54968", address:"서울특별시 강남구 테헤란로4길 14",
+    ceo:"오경석", regNo:"119-86-54968", address:"서울특별시 강남구 테헤란로4길 14",
     applyDate:"2021-08-20", website:"https://upbit.com",
     desc:"국내 최대 원화마켓 거래소. 200종 이상 거래 지원. 공시 제도 및 유의종목 관리로 이용자 보호 체계 선도.",
     feat:"시장점유율 80%+, 트래블룰 글로벌 연동(CodeVASP), KB·NH은행 실명계좌, 하나금융·한화증권·삼성 지분투자",
@@ -582,7 +594,7 @@ const DATA = [
     types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","상장심사"],
     b2:"b2c", won:true, bank:true, regDate:"2021-11-25" },
 
-  { name:"빗썸",      corp:"(주)빗썸코리아",           service:"원화·코인 현물거래소",
+  { name:"빗썸",      corp:"(주)빗썸",                 service:"원화·코인 현물거래소",
     ceo:"이재원", regNo:"220-88-71844", address:"서울특별시 강남구 테헤란로 124",
     applyDate:"2021-09-09", website:"https://www.bithumb.com",
     desc:"국내 2위 원화마켓 거래소. 법인 전용 API 서비스 운영. 삼성증권 IPO 주관으로 코스닥 상장 추진 중.",
@@ -592,7 +604,7 @@ const DATA = [
     complianceOfficer:"한윤택", complianceSource:"언론 공시(2024.09 선임)" },
 
   { name:"플라이빗",  corp:"(주)한국디지털거래소",      service:"원화·코인 거래소 + OTC",
-    ceo:"김석진", regNo:"194-87-00761", address:"서울특별시 서초구 강남대로 527",
+    ceo:"김석진", regNo:"194-87-00761", address:"서울특별시 강남구 테헤란로 143",
     applyDate:"2021-09-17",
     desc:"중소 원화마켓 거래소. OTC(장외거래) 서비스 병행 운영으로 B2B 대량 거래 특화.",
     feat:"OTC 대량거래, 기업 고객 대상 서비스",
@@ -607,10 +619,10 @@ const DATA = [
     desc:"피어테크 운영 코인 교환 전용 거래소. 다양한 알트코인 상장.",
     feat:"알트코인 다양성, 코인마켓 전용 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-11-29" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-11-29", expired:true },
 
   { name:"고팍스",    corp:"(주)스트리미",             service:"원화·코인 현물거래소",
-    ceo:"이준행", regNo:"432-87-00120", address:"서울특별시 강남구 봉은사로 179",
+    ceo:"박한민", regNo:"432-87-00120", address:"서울특별시 강남구 봉은사로 179",
     applyDate:"2021-09-24", website:"https://www.gopax.co.kr",
     desc:"다수 알트코인 지원 거래소. 전북은행 실명계좌 보유.",
     feat:"전북은행 실명계좌, 다양한 알트코인 상장",
@@ -618,7 +630,7 @@ const DATA = [
     b2:"b2c", won:true, bank:true, regDate:"2021-12-09" },
 
   { name:"BTX",       corp:"차일들리(주)",             service:"코인·코인 교환 거래소",
-    ceo:"김은태", regNo:"729-86-01268", address:"서울특별시 성동구 연무장5길 9-16",
+    ceo:"김은태", regNo:"729-86-01268", address:"서울특별시 금천구 가산디지털1로 168",
     applyDate:"2021-09-24",
     desc:"코인 교환 전용 거래소. 실명계좌 없이 코인간 교환 가능.",
     feat:"실명계좌 불필요, 코인간 교환 전문",
@@ -631,7 +643,7 @@ const DATA = [
     desc:"글로벌 서비스 기반 코인 거래소. 다양한 신규 코인 상장 및 IEO 서비스 제공.",
     feat:"글로벌 서비스, 신규 코인 IEO, 알트코인 다양성",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","글로벌","IEO"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-09" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-09", expired:true },
 
   { name:"포블",      corp:"(주)포블게이트",           service:"코인·코인 교환 거래소",
     ceo:"안현준", regNo:"136-87-01478", address:"서울특별시 서초구 서초대로 397",
@@ -647,10 +659,10 @@ const DATA = [
     desc:"글로벌 후오비 그룹 한국법인 거래소.",
     feat:"글로벌 후오비 브랜드, 다양한 코인 지원",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","글로벌"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-21" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-21", expired:true },
 
   { name:"코어닥스",  corp:"(주)코어닥스",            service:"코인·코인 교환 거래소",
-    ceo:"임요송", regNo:"894-86-01183", address:"서울특별시 구로구 디지털로 242",
+    ceo:"김찬우", regNo:"894-86-01183", address:"서울특별시 구로구 디지털로 242",
     applyDate:"2021-09-24",
     desc:"코인 교환 전용 소규모 거래소. 안정적 소규모 운영.",
     feat:"코인마켓 전용, 소규모 안정 운영",
@@ -663,7 +675,7 @@ const DATA = [
     desc:"대구 기반 코인 거래소. 다양한 디지털자산 거래 서비스.",
     feat:"지역 기반 운영, 다양한 코인 지원",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23", expired:true },
 
   { name:"한빗코",    corp:"(주)한빗코코리아",         service:"코인 거래소",
     ceo:"유승재", regNo:"554-86-00781", address:"서울특별시 동작구 여의대방로62길 1",
@@ -671,7 +683,7 @@ const DATA = [
     desc:"중소 코인 거래소. 다양한 코인 거래 서비스 제공.",
     feat:"다양한 코인 지원, 안정적 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23", expired:true },
 
   { name:"비블록",    corp:"(주)그레이브릿지",         service:"코인 거래소",
     ceo:"황익찬", regNo:"155-86-01720", address:"서울특별시 강남구 선릉로131길 9",
@@ -687,18 +699,18 @@ const DATA = [
     desc:"코인 거래 전문 플랫폼.",
     feat:"코인마켓 전용, 안정적 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23", expired:true },
 
-  { name:"오케이비트", corp:"(주)포리스닥스코리아",     service:"코인 교환·중개",
-    ceo:"라파엘드마르코이멜로", regNo:"885-88-00694", address:"서울특별시 종로구 종로3길 17",
+  { name:"크립토닷컴", corp:"(주)포리스닥스코리아리미티드", service:"코인 교환·중개",
+    ceo:"홍성준", regNo:"885-88-00694", address:"서울특별시 종로구 종로3길 17",
     applyDate:"2021-09-23",
-    desc:"코인 교환 및 중개 서비스 중심 플랫폼.",
-    feat:"코인 교환 전문, 소규모 운영",
-    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","중개"],
+    desc:"글로벌 Crypto.com 한국법인. 코인 교환 및 중개 서비스 운영.",
+    feat:"글로벌 브랜드 연계, 코인 교환·중개 전문",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","중개","글로벌"],
     b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
 
   { name:"빗크몬",    corp:"(주)골든퓨쳐스",          service:"코인 거래 플랫폼",
-    ceo:"권정만", regNo:"791-81-00992", address:"서울특별시 서초구 서초대로78길 52",
+    ceo:"권정만", regNo:"791-81-00992", address:"서울특별시 강남구 논현로 99길 37",
     applyDate:"2021-09-24",
     desc:"중소 코인 거래 플랫폼.",
     feat:"다양한 코인 지원",
@@ -711,12 +723,12 @@ const DATA = [
     desc:"코인 거래 전문 중소 플랫폼.",
     feat:"코인마켓 전용 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-30", expired:true },
 
-  { name:"보라비트",  corp:"(주)뱅코",               service:"코인 거래 플랫폼",
-    ceo:"김성훈", regNo:"280-88-00977", address:"전라북도 전주시 덕진구 오공로 123",
+  { name:"보라비트",  corp:"(주)보라비트",             service:"코인 거래 플랫폼",
+    ceo:"임지현", regNo:"280-88-00977", address:"서울특별시 서초구 효령로 255 2층",
     applyDate:"2021-09-24",
-    desc:"전주 기반 코인 거래 전문 소규모 플랫폼.",
+    desc:"코인 거래 전문 소규모 플랫폼.",
     feat:"소규모 코인 거래 플랫폼",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
     b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
@@ -727,7 +739,7 @@ const DATA = [
     desc:"코인 거래 전문 중소 거래소.",
     feat:"코인마켓 전용 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04", expired:true },
 
   { name:"텐앤텐",    corp:"(주)텐앤텐",             service:"코인 거래소",
     ceo:"조중철", regNo:"659-88-01191", address:"전라남도 목포시 평화로 54",
@@ -735,7 +747,7 @@ const DATA = [
     desc:"목포 기반 코인 거래 전문 플랫폼.",
     feat:"코인마켓 운영, 지역 기반",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04", expired:true },
 
   { name:"에이프로빗", corp:"(주)에이프로코리아",      service:"코인 거래소",
     ceo:"강명구", regNo:"208-87-01657", address:"서울특별시 강남구 테헤란로63길 11",
@@ -743,10 +755,10 @@ const DATA = [
     desc:"코인 거래 전문 거래소. 다양한 알트코인 서비스 제공.",
     feat:"알트코인 다양성, 안정적 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
-    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04", expired:true },
 
-  { name:"오아시스",  corp:"(주)가디언홀딩스",        service:"코인 교환 거래소",
-    ceo:"이동민", regNo:"826-81-00997", address:"서울특별시 강남구 역삼로 546",
+  { name:"오아시스거래소", corp:"(주)가디언홀딩스",    service:"코인 교환 거래소",
+    ceo:"이동민", regNo:"826-81-00997", address:"서울특별시 강남구 도산대로 146",
     applyDate:"2021-09-24",
     desc:"코인 교환 전용 중소 거래소. 다양한 알트코인 지원.",
     feat:"알트코인 특화, 코인마켓 전용",
@@ -759,7 +771,7 @@ const DATA = [
     desc:"중소 코인 거래 전문 거래소.",
     feat:"코인마켓 전용, 안정적 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2022-02-10" },
+    b2:"b2c", won:false, bank:false, regDate:"2022-02-10", expired:true },
 
   { name:"코인빗",    corp:"(주)엑시아소프트",        service:"코인 거래소",
     ceo:"조강호", regNo:"120-87-79307", address:"서울특별시 강남구 봉은사로 426",
@@ -767,11 +779,11 @@ const DATA = [
     desc:"코인 거래 전문 거래소.",
     feat:"코인마켓 전용 운영",
     types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
-    b2:"b2c", won:false, bank:false, regDate:"2022-09-01" },
+    b2:"b2c", won:false, bank:false, regDate:"2022-09-01", expired:true },
 
   /* ── 수탁·관리 ── */
   { name:"KODA",      corp:"(주)한국디지털에셋",      service:"기관 대상 디지털자산 수탁",
-    ceo:"조진석", regNo:"618-81-36254", address:"서울특별시 강남구 테헤란로27길 8",
+    ceo:"조진석", regNo:"618-81-36254", address:"서울특별시 강남구 테헤란로 238",
     applyDate:"2021-09-17", website:"https://www.kodax.com",
     desc:"KB국민은행·해시드·해치랩스 합작법인. 국내 최대 수탁사(AUM 약 8조원). 기관·법인 전용 cold/warm wallet 수탁.",
     feat:"KB국민은행 연계, 국내 수탁 시장 1위, 스테이킹 등 부가 상품 연계",
@@ -779,17 +791,17 @@ const DATA = [
     b2:"b2b", won:false, bank:true, regDate:"2021-12-17" },
 
   { name:"KDAC",      corp:"(주)한국디지털자산수탁",  service:"기관 대상 디지털자산 수탁",
-    ceo:"김민수·이청우", regNo:"809-86-01583", address:"서울특별시 서초구 강남대로 525",
+    ceo:"조성일·김준홍", regNo:"809-86-01583", address:"서울특별시 서초구 강남대로 525",
     applyDate:"2021-09-24", website:"https://www.kdac.io",
     desc:"코빗·신한은행 설립. ETF 수탁 시장 선점. 신한·NH금융그룹 지분 보유. 카르도 합병 후 규모 확대.",
     feat:"신한·NH금융 주주, ETF 수탁 특화, 카르도 합병, 기관 전용 플랫폼",
     types:["다","라"], cat:"c", tags:["기관수탁","B2B","은행연계","ETF수탁"],
     b2:"b2b", won:false, bank:true, regDate:"2021-12-17" },
 
-  { name:"오하이월렛", corp:"(주)헥슬란트",           service:"가상자산 지갑·수탁",
-    ceo:"강준우·박인수", regNo:"636-88-00831", address:"서울특별시 강남구 강남대로 340",
+  { name:"오하이월렛", corp:"(주)헥토월렛원",          service:"가상자산 지갑·수탁",
+    ceo:"최정록", regNo:"636-88-00831", address:"서울특별시 강남구 테헤란로 223",
     applyDate:"2021-09-24",
-    desc:"헥슬란트 운영 가상자산 지갑 및 수탁 서비스. 개인·기업 대상 자산 보관·이전.",
+    desc:"헥토월렛원 운영 가상자산 지갑 및 수탁 서비스. 개인·기업 대상 자산 보관·이전.",
     feat:"지갑 서비스, 보안 특화 인프라",
     types:["다","라"], cat:"c", tags:["지갑","수탁"],
     b2:"mix", won:false, bank:false, regDate:"2021-12-30" },
@@ -800,7 +812,7 @@ const DATA = [
     desc:"씨피랩스의 마이키핀 월렛. 개인 및 기업 대상 디지털자산 보관·관리 서비스.",
     feat:"지갑 서비스, 보안 특화",
     types:["다","라"], cat:"c", tags:["지갑","수탁"],
-    b2:"mix", won:false, bank:false, regDate:"2022-01-04" },
+    b2:"mix", won:false, bank:false, regDate:"2022-01-04", expired:true },
 
   { name:"카르도",    corp:"(주)카르도",              service:"기업 대상 디지털자산 수탁",
     ceo:"이청우", regNo:"774-87-02041", address:"서울특별시 강남구 논현로87길 15",
@@ -808,7 +820,7 @@ const DATA = [
     desc:"기업 대상 수탁 서비스 전문. KDAC와 합병하여 규모 확대.",
     feat:"기업 수탁 전문, KDAC 합병",
     types:["다","라"], cat:"c", tags:["기업수탁","B2B"],
-    b2:"b2b", won:false, bank:false, regDate:"2022-02-10" },
+    b2:"b2b", won:false, bank:false, regDate:"2022-02-10", expired:true },
 
   { name:"델리오",    corp:"(주)델리오",              service:"디지털자산 수탁·이전",
     ceo:"정상호", regNo:"283-88-00879", address:"서울특별시 강남구 삼성로85길 26",
@@ -816,10 +828,10 @@ const DATA = [
     desc:"가상자산 수탁 및 이전 서비스. 운영 사태 이후 재정비 중.",
     feat:"수탁·이전 특화",
     types:["다","라"], cat:"c", tags:["수탁","이전"],
-    b2:"mix", won:false, bank:false, regDate:"2022-02-12" },
+    b2:"mix", won:false, bank:false, regDate:"2022-02-12", expired:true },
 
   { name:"커스텔라",  corp:"(주)마인드시프트",        service:"디지털자산 수탁·관리",
-    ceo:"박정주", regNo:"634-86-01747", address:"대구광역시 중구 국채보상로 558-1",
+    ceo:"박용건", regNo:"634-86-01747", address:"대구광역시 중구 국채보상로 558-1",
     applyDate:"2022-05-24",
     desc:"대구 기반 수탁·관리 전문 사업자. 재단·중소기업 대상 서비스.",
     feat:"재단·중소기업 특화, 보안 인프라",
@@ -835,7 +847,7 @@ const DATA = [
     b2:"b2b", won:false, bank:true, regDate:"2023-08-07" },
 
   { name:"디에스알브이랩스", corp:"(주)디에스알브이랩스", service:"노드 운영·커스터디·스테이킹",
-    ceo:"김지윤", regNo:"659-87-01307", address:"서울특별시 강남구 봉은사로20길 28",
+    ceo:"김지윤·서병윤", regNo:"659-87-01307", address:"서울특별시 강남구 봉은사로20길 28",
     applyDate:"2023-10-06", website:"https://www.dsrvlabs.com",
     desc:"블록체인 인프라 전문. 검증인(Validator) 노드 운영 및 스테이킹 서비스 특화. ISMS 본인증 보유.",
     feat:"멀티체인 밸리데이터, 스테이킹 전문, ISMS 본인증",
@@ -843,7 +855,7 @@ const DATA = [
     b2:"b2b", won:false, bank:false, regDate:"2024-09-25" },
 
   { name:"비댁스",    corp:"비댁스(주)",              service:"기업 대상 디지털자산 수탁",
-    ceo:"류홍열", regNo:"376-88-02126", address:"부산광역시 동구 중앙대로 365",
+    ceo:"류홍열", regNo:"376-88-02126", address:"부산광역시 해운대구 에이펙로 17, 1102호",
     applyDate:"2024-02-14",
     desc:"커스터디 전문 업체. 기업 대상 cold wallet 수탁 서비스. 우리은행 지분투자.",
     feat:"커스터디 전문, 우리은행 투자, 기업 특화",
@@ -851,8 +863,8 @@ const DATA = [
     b2:"b2b", won:false, bank:true, regDate:"2024-09-25" },
 
   /* ── 복합 유형 ── */
-  { name:"하이퍼리즘", corp:"(주)하이퍼리즘",         service:"디지털자산 거래·이전",
-    ceo:"오상록·이원준", regNo:"477-86-01090", address:"서울특별시 관악구 관악로 116",
+  { name:"하이퍼리즘", corp:"하이퍼리즘 유한책임회사",  service:"디지털자산 거래·이전",
+    ceo:"오상록·이원준", regNo:"477-86-01090", address:"서울특별시 관악구 관악로 217",
     applyDate:"2021-09-24", website:"https://hyperithm.com",
     desc:"가상자산 매도매수·교환·이전 서비스. 트래블룰 솔루션 자체 개발 보유.",
     feat:"트래블룰 솔루션 자체 보유, 기업 자산 이동 특화",
@@ -865,7 +877,7 @@ const DATA = [
     desc:"스위스 법인 기반 결제 특화 가상자산 사업자. 코인 교환·이전·보관 서비스.",
     feat:"결제 특화, 글로벌 법인 구조",
     types:["나","다","라"], cat:"m", tags:["결제","글로벌","코인교환"],
-    b2:"mix", won:false, bank:false, regDate:"2022-04-22" },
+    b2:"mix", won:false, bank:false, regDate:"2022-04-22", expired:true },
 
   { name:"프라뱅",    corp:"(주)프라뱅",              service:"가상자산 이전·보관·중개",
     ceo:"김상진", regNo:"681-81-01205", address:"서울특별시 강서구 양천로 354",
@@ -883,7 +895,7 @@ const DATA = [
     types:["다","라","마"], cat:"m", tags:["커스터디","중개","무료수수료"],
     b2:"mix", won:false, bank:false, regDate:"2024-10-15" },
 
-  { name:"돌핀",      corp:"(주)웨이브릿지",           service:"가상자산 교환·이전·수탁·중개",
+  { name:"웨이브릿지 프라임", corp:"(주)웨이브릿지",   service:"가상자산 교환·이전·수탁·중개",
     ceo:"오종욱", regNo:"767-88-01245", address:"서울특별시 중구 서소문로 50",
     applyDate:"2023-09-20",
     desc:"웨이브릿지 운영 복합 가상자산 서비스. 교환·이전·보관·중개 서비스 제공.",
@@ -898,6 +910,22 @@ const DATA = [
     feat:"복합 서비스, 안전한 보관 인프라",
     types:["나","다","라","마"], cat:"m", tags:["복합","이전","보관"],
     b2:"mix", won:false, bank:false, regDate:"2025-01-17" },
+
+  { name:"로빗",     corp:"(주)블로세이프",           service:"디지털자산 수탁·관리",
+    ceo:"한성주", regNo:"741-86-02855", address:"서울특별시 강남구 논현로 75길 15, 301호",
+    applyDate:"2024-01-03",
+    desc:"블로세이프 운영 가상자산 수탁·관리 전문 서비스.",
+    feat:"가상자산 이전·보관 전문",
+    types:["다","라"], cat:"c", tags:["수탁","보관"],
+    b2:"b2b", won:false, bank:false, regDate:"2025-08-29" },
+
+  { name:"ABC Cloud Wallet", corp:"(주)안랩블록체인컴퍼니", service:"디지털자산 수탁·관리",
+    ceo:"강석균", regNo:"411-87-02306", address:"경기도 성남시 분당구 판교역로 220, 5층",
+    applyDate:"2024-06-10",
+    desc:"안랩 계열사 운영 블록체인 기반 가상자산 수탁·관리 서비스.",
+    feat:"안랩 보안 기술 연계, 가상자산 이전·보관",
+    types:["다","라"], cat:"c", tags:["수탁","보관","보안"],
+    b2:"b2b", won:false, bank:false, regDate:"2026-04-23" },
 ];
 
 const TOTAL = DATA.length;
@@ -921,6 +949,7 @@ function typeRange(types) {
 }
 
 let activeFilter = "";
+let statusFilter = "";   /* 'live' | 'exp' | '' */
 
 /* ═══════════════════ NAVIGATION ═══════════════════ */
 function showPage(id, btn) {
@@ -937,8 +966,21 @@ function showPage(id, btn) {
 /* ═══════════════════ LIST PAGE ═══════════════════ */
 function setFilter(el, val) {
   activeFilter = val;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  /* only deactivate category tabs, not status tabs */
+  document.querySelectorAll('.filter-tab:not(.t-live):not(.t-exp)').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  renderList();
+}
+
+function setStatusFilter(el, val) {
+  if (statusFilter === val) {
+    statusFilter = '';
+    el.classList.remove('active');
+  } else {
+    statusFilter = val;
+    document.querySelectorAll('.filter-tab.t-live,.filter-tab.t-exp').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
   renderList();
 }
 
@@ -948,7 +990,8 @@ function renderList() {
     const tm = !q || c.name.toLowerCase().includes(q) || c.service.toLowerCase().includes(q)
       || c.corp.toLowerCase().includes(q) || (c.tags || []).some(t => t.toLowerCase().includes(q));
     const tf = !activeFilter || c.cat === activeFilter;
-    return tm && tf;
+    const ts = !statusFilter || (statusFilter === 'exp' ? c.expired : !c.expired);
+    return tm && tf && ts;
   });
   document.getElementById('countLabel').textContent = `${f.length} / ${TOTAL}개사`;
   const grid = document.getElementById('grid');
@@ -957,12 +1000,15 @@ function renderList() {
     const ci = CAT_INFO[c.cat];
     const typeTag = `<span class="lic-tag ${CAT_TAG_CLS[c.cat]}">${typeRange(c.types)}</span>`;
     const tagHtml = (c.tags || []).map(t => `<span class="gen-tag">${t}</span>`).join('');
-    return `<div class="card" onclick="openDetail('${c.name.replace(/'/g,"\\'")}')" role="button" tabindex="0">
+    const statusBadge = c.expired
+      ? `<span class="badge-exp">신고 말소</span>`
+      : `<span class="badge-live">신고 유효</span>`;
+    return `<div class="card${c.expired ? ' is-expired' : ''}" onclick="openDetail('${c.name.replace(/'/g,"\\'")}')" role="button" tabindex="0">
       <div class="card-top">
         <div><div class="card-name">${c.name}</div><div class="card-corp">${c.corp}</div></div>
         <span class="type-badge ${ci.cls}"><span class="bd"></span>${ci.label}</span>
       </div>
-      <div class="service-name">${c.service}</div>
+      <div class="service-name" style="display:flex;align-items:center;gap:8px">${c.service}${statusBadge}</div>
       <div class="card-desc">${c.desc}</div>
       <div class="feat-block"><div class="feat-label">특장점</div><div class="feat-text">${c.feat}</div></div>
       <div class="card-footer">${typeTag}${tagHtml}</div>
@@ -971,14 +1017,16 @@ function renderList() {
 }
 
 function renderMetrics() {
-  const cnt = { e:0, c:0, m:0 };
-  DATA.forEach(c => cnt[c.cat]++);
+  const live = DATA.filter(d => !d.expired);
+  const exp  = DATA.filter(d =>  d.expired);
+  const cnt  = { e:0, c:0, m:0 };
+  live.forEach(c => cnt[c.cat]++);
   document.getElementById('metrics').innerHTML = `
-    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--accent)"></span>전체 신고사업자</div><div class="mval">${TOTAL}</div><div class="msub">2025.01.23 기준</div></div>
-    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--exchange)"></span>거래소</div><div class="mval">${cnt.e}</div><div class="msub">가~마 포함 사업자</div></div>
-    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--custody)"></span>수탁·관리</div><div class="mval">${cnt.c}</div><div class="msub">다·라 전문 사업자</div></div>
-    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--mixed)"></span>복합</div><div class="mval">${cnt.m}</div><div class="msub">부분 유형 사업자</div></div>
-    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:#10B981)"></span>원화마켓</div><div class="mval">${DATA.filter(d=>d.won).length}</div><div class="msub">실명계좌 보유</div></div>`;
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:#34D399"></span>유효 신고사업자</div><div class="mval" style="color:#34D399">${live.length}</div><div class="msub">현재 신고 유효</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:#F87171"></span>신고 말소</div><div class="mval" style="color:#F87171">${exp.length}</div><div class="msub">유효기간 만료·미갱신</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--exchange)"></span>거래소 (유효)</div><div class="mval">${cnt.e}</div><div class="msub">가~마 포함 사업자</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--custody)"></span>수탁·관리 (유효)</div><div class="mval">${cnt.c}</div><div class="msub">다·라 전문 사업자</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:#10B981"></span>원화마켓</div><div class="mval">${live.filter(d=>d.won).length}</div><div class="msub">실명계좌 보유 (유효)</div></div>`;
 }
 
 /* ═══════════════════ ANALYTICS ═══════════════════ */
@@ -1069,12 +1117,20 @@ function buildAnalytics() {
     (byYear[y] = byYear[y]||[]).push(d);
   });
   const yColors = {'2021':'#3B82F6','2022':'#10B981','2023':'#F59E0B','2024':'#A78BFA','2025':'#F87171'};
-  document.getElementById('cohortGrid').innerHTML = Object.keys(byYear).sort().map(y => `
-    <div class="cohort-bucket">
-      <div class="cb-label">${y}년 신고수리</div>
+  document.getElementById('cohortGrid').innerHTML = Object.keys(byYear).sort().map(y => {
+    const live = byYear[y].filter(d => !d.expired);
+    const exp  = byYear[y].filter(d =>  d.expired);
+    const names = [
+      ...live.map(d => d.name),
+      ...exp.map(d => `<span style="color:#F87171;text-decoration:line-through">${d.name}</span>`),
+    ].join(', ');
+    const subLabel = exp.length ? ` <span style="font-size:11px;color:#F87171">(말소 ${exp.length})</span>` : '';
+    return `<div class="cohort-bucket">
+      <div class="cb-label">${y}년 신고수리${subLabel}</div>
       <div class="cb-count" style="color:${yColors[y]||'#fff'}">${byYear[y].length}개사</div>
-      <div class="cb-names">${byYear[y].map(d=>d.name).join(', ')}</div>
-    </div>`).join('');
+      <div class="cb-names">${names}</div>
+    </div>`;
+  }).join('');
 
   document.getElementById('tlList').innerHTML = Object.keys(byYear).sort().map(y => `
     <div class="tl-year-group">
@@ -1082,17 +1138,19 @@ function buildAnalytics() {
       <div class="tl-items">
         ${byYear[y].sort((a,b)=>a.regDate.localeCompare(b.regDate)).map(d => {
           const ci = CAT_INFO[d.cat];
-          return `<div class="tl-item">
+          const expMark = d.expired ? `<span class="badge-exp" style="font-size:9px;padding:1px 5px">말소</span>` : '';
+          return `<div class="tl-item" style="${d.expired ? 'opacity:0.5' : ''}">
             <span class="tl-date">${d.regDate.slice(5).replace('-','.')}</span>
             <span class="tl-name">${d.name}</span>
             <span class="type-badge ${ci.cls}" style="font-size:10px;padding:2px 6px"><span class="bd"></span>${ci.label}</span>
+            ${expMark}
           </div>`;
         }).join('')}
       </div>
     </div>`).join('');
 
   /* Tenure table */
-  const refDate = new Date('2025-01-23');
+  const refDate = new Date('2026-05-29');
   const firstDate = new Date('2021-10-06');
   const maxDays = (refDate - firstDate) / 86400000;
   const sorted = [...DATA].sort((a,b) => a.regDate.localeCompare(b.regDate));
@@ -1101,11 +1159,13 @@ function buildAnalytics() {
     const days = (refDate - new Date(d.regDate)) / 86400000;
     const yrs = (days/365).toFixed(1);
     const pct = Math.round(days/maxDays*100);
-    return `<tr>
-      <td><span class="tenure-name">${d.name}</span><br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
+    const barColor = d.expired ? '#4B1E1E' : catBarColor[d.cat];
+    const expMark = d.expired ? `<span class="badge-exp" style="font-size:9px;padding:1px 5px;margin-left:4px">말소</span>` : '';
+    return `<tr style="${d.expired ? 'opacity:0.5' : ''}">
+      <td><span class="tenure-name">${d.name}</span>${expMark}<br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
       <td>
         <div class="tenure-bar-wrap">
-          <div class="tenure-bar" style="width:${pct}%;background:${catBarColor[d.cat]}"></div>
+          <div class="tenure-bar" style="width:${pct}%;background:${barColor}"></div>
           <span style="font-size:11px;color:var(--tm)">${d.regDate}</span>
         </div>
       </td>
@@ -1554,12 +1614,15 @@ function openDetail(name) {
 
   const ci = CAT_INFO[d.cat];
   const catColor = {e:'#3B82F6', c:'#10B981', m:'#64748B'}[d.cat];
-  const refDate = new Date('2025-01-23');
+  const refDate = new Date('2026-05-29');
   const days = (refDate - new Date(d.regDate)) / 86400000;
   const yrs = (days / 365).toFixed(1);
 
+  const statusBadgeHtml = d.expired
+    ? `<span class="badge-exp">신고 말소</span>`
+    : `<span class="badge-live">신고 유효</span>`;
   document.getElementById('dp-badge-wrap').innerHTML =
-    `<span class="type-badge ${ci.cls}"><span class="bd"></span>${ci.label}</span>`;
+    `<span class="type-badge ${ci.cls}"><span class="bd"></span>${ci.label}</span>${statusBadgeHtml}`;
   document.getElementById('dp-name').textContent = d.name;
   document.getElementById('dp-corp').textContent = d.corp;
   document.getElementById('dp-service').textContent = d.service;
@@ -1667,7 +1730,7 @@ const KR_EVENTS = [
   { date:'2022-05-09', label:'테라/루나 폭락', detail:'테라(UST) 디페깅 → 루나 99% 이상 폭락. 수십조원 국내 투자자 피해. 권도형 대표 해외 도피.', col:'#EF4444', side:'kr' },
   { date:'2023-06-30', label:'이용자보호법 의결', detail:'가상자산이용자보호법 국회 본회의 통과. 불공정거래 금지·자산 안전관리 의무 법제화. 1년 유예.', col:'#3B82F6', side:'kr' },
   { date:'2024-07-19', label:'이용자보호법 시행', detail:'가상자산이용자보호법 1단계 본격 시행. 거래지원 적정성 심사·이상거래 감시 의무화.', col:'#10B981', side:'kr' },
-  { date:'2025-01-23', label:'FIU 공시 기준일', detail:'금융정보분석원 가상자산사업자 신고 정보공개 기준일. 42개사 신고수리 현황 공시.', col:'#A78BFA', side:'kr' },
+  { date:'2026-05-29', label:'FIU 공시 기준일', detail:'금융정보분석원 가상자산사업자 신고 정보공개 기준일. 44개사 신고수리 현황 공시 (유효 28개사, 말소 16개사).', col:'#A78BFA', side:'kr' },
 ];
 
 const US_EVENTS = [
@@ -1785,28 +1848,59 @@ function buildTimeline() {
 
   /* ── VASP registration markers ── */
   const catCol = { e:'#3B82F6', c:'#10B981', m:'#64748B' };
+
+  /* group by date, separating live vs expired */
   const byDate = {};
   DATA.forEach(d => { const k = d.regDate; (byDate[k] = byDate[k] || []).push(d); });
 
   Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0])).forEach(([dt, items]) => {
-    const x = tScale(new Date(dt));
-    const cnt = items.length;
-    const catCount = { e:0, c:0, m:0 };
-    items.forEach(d => catCount[d.cat]++);
-    const mainCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0][0];
-    const col = catCol[mainCat];
-    const r = Math.min(4 + cnt * 1.8, 14);
-    const tickH = Math.min(8 + cnt * 3, 28);
+    const liveItems = items.filter(d => !d.expired);
+    const expItems  = items.filter(d =>  d.expired);
 
-    svg.append('line').attr('x1', x).attr('x2', x).attr('y1', AXIS_Y).attr('y2', AXIS_Y + tickH).attr('stroke', col).attr('stroke-width', cnt > 2 ? 2 : 1.2).attr('stroke-opacity', 0.7);
+    const drawGroup = (grpItems, isExp) => {
+      if (!grpItems.length) return;
+      const x = tScale(new Date(dt)) + (isExp ? 5 : 0);
+      const cnt = grpItems.length;
+      const catCount = { e:0, c:0, m:0 };
+      grpItems.forEach(d => catCount[d.cat]++);
+      const mainCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0][0];
+      const col = isExp ? '#EF4444' : catCol[mainCat];
+      const opacity = isExp ? 0.45 : 1;
+      const r = Math.min(4 + cnt * 1.8, 14);
+      const tickH = Math.min(8 + cnt * 3, 28);
 
-    const mg = svg.append('g').attr('cursor', 'pointer');
-    mg.append('circle').attr('cx', x).attr('cy', AXIS_Y + tickH + r).attr('r', r).attr('fill', col + '30').attr('stroke', col).attr('stroke-width', 1.2);
-    if (cnt > 1) mg.append('text').attr('x', x).attr('y', AXIS_Y + tickH + r).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('font-size', 8).attr('font-weight', '600').attr('font-family', "Space Grotesk, sans-serif").attr('fill', col).attr('pointer-events', 'none').text(cnt);
+      svg.append('line')
+        .attr('x1', x).attr('x2', x)
+        .attr('y1', AXIS_Y).attr('y2', AXIS_Y + tickH)
+        .attr('stroke', col).attr('stroke-width', cnt > 2 ? 2 : 1.2)
+        .attr('stroke-opacity', isExp ? 0.3 : 0.7)
+        .attr('stroke-dasharray', isExp ? '3,3' : null);
 
-    const nameRows = items.map(d => `<div style="display:flex;align-items:center;gap:5px;margin-top:3px"><span style="color:${catCol[d.cat]};font-size:10px">●</span><span style="font-size:12px;color:#F0EEE8">${d.name}</span><span style="font-size:10px;color:#4E5260">${d.corp}</span></div>`).join('');
-    mg.on('mouseover', e => showTip(e, `<div style="font-size:10px;color:#A78BFA;font-weight:600;margin-bottom:3px">신고수리 · ${cnt}개사</div><div style="font-size:11px;color:#8A8E9A;margin-bottom:6px">${dt}</div>${nameRows}`))
-      .on('mousemove', moveTip).on('mouseout', hideTip);
+      const mg = svg.append('g').attr('cursor', 'pointer').attr('opacity', opacity);
+      mg.append('circle')
+        .attr('cx', x).attr('cy', AXIS_Y + tickH + r).attr('r', r)
+        .attr('fill', col + '25').attr('stroke', col).attr('stroke-width', isExp ? 1 : 1.2)
+        .attr('stroke-dasharray', isExp ? '3,2' : null);
+      if (cnt > 1) mg.append('text')
+        .attr('x', x).attr('y', AXIS_Y + tickH + r)
+        .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+        .attr('font-size', 8).attr('font-weight', '600')
+        .attr('font-family', "Space Grotesk, sans-serif").attr('fill', col)
+        .attr('pointer-events', 'none').text(cnt);
+
+      const nameRows = grpItems.map(d => {
+        const tag = d.expired ? `<span style="font-size:9px;color:#F87171;margin-left:3px">말소</span>` : '';
+        return `<div style="display:flex;align-items:center;gap:5px;margin-top:3px"><span style="color:${catCol[d.cat]};font-size:10px">●</span><span style="font-size:12px;color:#F0EEE8">${d.name}</span><span style="font-size:10px;color:#4E5260">${d.corp}</span>${tag}</div>`;
+      }).join('');
+      const tipHeader = isExp
+        ? `<div style="font-size:10px;color:#F87171;font-weight:600;margin-bottom:3px">신고수리 (말소) · ${cnt}개사</div>`
+        : `<div style="font-size:10px;color:#A78BFA;font-weight:600;margin-bottom:3px">신고수리 · ${cnt}개사</div>`;
+      mg.on('mouseover', e => showTip(e, `${tipHeader}<div style="font-size:11px;color:#8A8E9A;margin-bottom:6px">${dt}</div>${nameRows}`))
+        .on('mousemove', moveTip).on('mouseout', hideTip);
+    };
+
+    drawGroup(liveItems, false);
+    drawGroup(expItems,  true);
   });
 }
 </script>
