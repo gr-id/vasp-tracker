@@ -274,8 +274,11 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 .dp-kv { display:flex; flex-direction:column; gap:8px; }
 .dp-kv-row { display:flex; gap:12px; }
 .dp-key { font-size:11px; color:var(--tm); width:72px; flex-shrink:0; padding-top:1px; }
-.dp-val { font-size:12px; color:var(--ts); flex:1; }
+.dp-val { font-size:12px; color:var(--ts); flex:1; display:flex; flex-wrap:wrap; align-items:baseline; gap:6px; }
 .dp-val.hi { color:var(--tp); font-weight:500; }
+.dp-compliance-name { color:var(--tp); font-weight:500; font-size:12px; }
+.dp-compliance-src { font-size:10px; color:var(--tm); font-family:'Space Grotesk',sans-serif; }
+.dp-compliance-unconfirmed { color:var(--tm); font-size:12px; }
 .dp-link { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--accent); text-decoration:none; }
 .dp-link:hover { text-decoration:underline; }
 .dp-tags { display:flex; flex-wrap:wrap; gap:5px; }
@@ -560,7 +563,8 @@ const DATA = [
     desc:"국내 최대 원화마켓 거래소. 200종 이상 거래 지원. 공시 제도 및 유의종목 관리로 이용자 보호 체계 선도.",
     feat:"시장점유율 80%+, 트래블룰 글로벌 연동(CodeVASP), KB·NH은행 실명계좌, 하나금융·한화증권·삼성 지분투자",
     types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","대형거래소","기관"],
-    b2:"b2c", won:true, bank:true, regDate:"2021-10-06" },
+    b2:"b2c", won:true, bank:true, regDate:"2021-10-06",
+    complianceOfficer:"엄창현", complianceSource:"DART 사업보고서(2026.03)" },
 
   { name:"코빗",      corp:"(주)코빗",                service:"원화·코인 현물거래소",
     ceo:"오세진", regNo:"220-88-61399", address:"서울특별시 강남구 테헤란로5길 7",
@@ -584,7 +588,8 @@ const DATA = [
     desc:"국내 2위 원화마켓 거래소. 법인 전용 API 서비스 운영. 삼성증권 IPO 주관으로 코스닥 상장 추진 중.",
     feat:"NH농협은행 실명계좌, 법인 API 서비스, 삼성증권 IPO 주관",
     types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","대형거래소","법인API"],
-    b2:"mix", won:true, bank:true, regDate:"2021-12-02" },
+    b2:"mix", won:true, bank:true, regDate:"2021-12-02",
+    complianceOfficer:"한윤택", complianceSource:"언론 공시(2024.09 선임)" },
 
   { name:"플라이빗",  corp:"(주)한국디지털거래소",      service:"원화·코인 거래소 + OTC",
     ceo:"김석진", regNo:"194-87-00761", address:"서울특별시 서초구 강남대로 527",
@@ -592,7 +597,8 @@ const DATA = [
     desc:"중소 원화마켓 거래소. OTC(장외거래) 서비스 병행 운영으로 B2B 대량 거래 특화.",
     feat:"OTC 대량거래, 기업 고객 대상 서비스",
     types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","OTC","B2B"],
-    b2:"mix", won:true, bank:true, regDate:"2021-12-01" },
+    b2:"mix", won:true, bank:true, regDate:"2021-12-01",
+    complianceOfficer:"오요한", complianceSource:"공식 발표(COO 겸직)" },
 
   /* ── 거래소 (코인마켓 / 글로벌) ── */
   { name:"지닥(GDAC)", corp:"(주)피어테크",            service:"코인·코인 교환 거래소",
@@ -1610,6 +1616,14 @@ function openDetail(name) {
       <div class="dp-sec-title">기본 정보</div>
       <div class="dp-kv">
         ${d.ceo ? `<div class="dp-kv-row"><div class="dp-key">대표자</div><div class="dp-val hi">${d.ceo}</div></div>` : ''}
+        <div class="dp-kv-row">
+          <div class="dp-key">준법감시인</div>
+          <div class="dp-val">
+            ${d.complianceOfficer
+              ? `<span class="dp-compliance-name">${d.complianceOfficer}</span><span class="dp-compliance-src">${d.complianceSource}</span>`
+              : `<span class="dp-compliance-unconfirmed">있음 (공시 미확인)</span>`}
+          </div>
+        </div>
         <div class="dp-kv-row"><div class="dp-key">법인명</div><div class="dp-val">${d.corp}</div></div>
         ${d.regNo ? `<div class="dp-kv-row"><div class="dp-key">등록번호</div><div class="dp-val">${d.regNo}</div></div>` : ''}
         ${d.address ? `<div class="dp-kv-row"><div class="dp-key">소재지</div><div class="dp-val">${d.address}</div></div>` : ''}
