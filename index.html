@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가상자산사업자 신고 현황 — FIU 2025.01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0B0D11; --surface: #13161C; --surface2: #1A1E27;
+  --border: rgba(255,255,255,0.07); --border-h: rgba(255,255,255,0.14);
+  --tp: #F0EEE8; --ts: #8A8E9A; --tm: #4E5260;
+  --exchange: #3B82F6; --exbg: rgba(59,130,246,0.1);
+  --custody: #10B981;  --cubg: rgba(16,185,129,0.1);
+  --transfer: #F59E0B; --trbg: rgba(245,158,11,0.1);
+  --broker: #A78BFA;   --brbg: rgba(167,139,250,0.1);
+  --mixed: #64748B;    --mibg: rgba(100,116,139,0.1);
+  --accent: #3B82F6;
+  --r: 10px; --rs: 6px;
+}
+html { scroll-behavior: smooth; }
+body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-serif; font-size:14px; line-height:1.6; min-height:100vh; }
+
+/* NAV */
+.site-header {
+  border-bottom:1px solid var(--border); padding:0 2rem;
+  position:sticky; top:0; background:rgba(11,13,17,0.94);
+  backdrop-filter:blur(12px); z-index:100;
+  display:flex; align-items:center; gap:1.5rem; height:56px;
+}
+.site-logo { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; letter-spacing:.04em; color:var(--tp); white-space:nowrap; }
+.site-logo span { color:var(--accent); }
+.site-meta { font-size:12px; color:var(--tm); border-left:1px solid var(--border); padding-left:1.5rem; }
+.nav-tabs { display:flex; gap:2px; margin-left:auto; }
+.nav-tab { height:36px; padding:0 16px; border:none; border-radius:var(--rs); background:transparent; color:var(--ts); font-family:'Noto Sans KR',sans-serif; font-size:13px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.nav-tab:hover { background:var(--surface2); color:var(--tp); }
+.nav-tab.active { background:var(--surface2); color:var(--tp); }
+.header-date { font-size:11px; color:var(--tm); font-family:'Space Grotesk',sans-serif; letter-spacing:.04em; white-space:nowrap; }
+
+/* PAGES */
+.page { display:none; }
+.page.active { display:block; }
+
+/* HERO */
+.hero { padding:3rem 2rem 2rem; max-width:1200px; margin:0 auto; }
+.hero-eyebrow { font-size:11px; font-family:'Space Grotesk',sans-serif; letter-spacing:.1em; color:var(--accent); text-transform:uppercase; margin-bottom:.75rem; }
+.hero-title { font-family:'Space Grotesk',sans-serif; font-size:clamp(22px,3vw,32px); font-weight:600; line-height:1.2; margin-bottom:.5rem; }
+.hero-sub { font-size:14px; color:var(--ts); max-width:560px; }
+
+/* METRICS STRIP */
+.metrics { max-width:1200px; margin:0 auto; padding:0 2rem 2rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+.metric-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1rem 1.25rem; }
+.metric-card .mlabel { font-size:11px; color:var(--tm); font-family:'Space Grotesk',sans-serif; letter-spacing:.04em; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.metric-card .mdot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.metric-card .mval { font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:600; color:var(--tp); }
+.metric-card .msub { font-size:11px; color:var(--tm); margin-top:2px; }
+
+/* DIVIDER */
+.divider { max-width:1200px; margin:0 auto 1.5rem; padding:0 2rem; border-bottom:1px solid var(--border); }
+
+/* LEGEND */
+.legend { max-width:1200px; margin:0 auto; padding:0 2rem 1rem; display:flex; gap:1.5rem; flex-wrap:wrap; font-size:11px; color:var(--tm); font-family:'Space Grotesk',sans-serif; }
+.li { display:flex; align-items:center; gap:5px; }
+.ldot { width:7px; height:7px; border-radius:50%; }
+
+/* CONTROLS */
+.controls-wrap { max-width:1200px; margin:0 auto; padding:0 2rem 1.5rem; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.search-box { position:relative; flex:1; min-width:220px; max-width:360px; }
+.search-box svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--tm); pointer-events:none; }
+.search-box input { width:100%; height:36px; background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); color:var(--tp); font-family:'Noto Sans KR',sans-serif; font-size:13px; padding:0 12px 0 34px; outline:none; transition:border-color .15s; }
+.search-box input::placeholder { color:var(--tm); }
+.search-box input:focus { border-color:var(--accent); }
+.filter-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.filter-tab { height:36px; padding:0 14px; border:1px solid var(--border); border-radius:var(--rs); background:var(--surface); color:var(--ts); font-family:'Noto Sans KR',sans-serif; font-size:12px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.filter-tab:hover { border-color:var(--border-h); color:var(--tp); }
+.filter-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.filter-tab.active.t-c { background:var(--custody); border-color:var(--custody); }
+.filter-tab.active.t-m { background:var(--mixed); border-color:var(--mixed); }
+.result-count { margin-left:auto; font-size:12px; color:var(--tm); font-family:'Space Grotesk',sans-serif; }
+
+/* CARD GRID */
+.grid { max-width:1200px; margin:0 auto; padding:0 2rem 4rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:12px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.25rem; transition:border-color .15s, background .15s; display:flex; flex-direction:column; }
+.card:hover { border-color:var(--border-h); background:var(--surface2); }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.card-name { font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; }
+.card-corp { font-size:11px; color:var(--tm); margin-top:3px; }
+.type-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-family:'Space Grotesk',sans-serif; font-weight:500; padding:4px 9px; border-radius:var(--rs); white-space:nowrap; flex-shrink:0; }
+.type-badge .bd { width:5px; height:5px; border-radius:50%; }
+.b-e { background:var(--exbg); color:#93C5FD; } .b-e .bd { background:var(--exchange); }
+.b-c { background:var(--cubg); color:#6EE7B7; } .b-c .bd { background:var(--custody);  }
+.b-m { background:var(--mibg); color:#94A3B8; } .b-m .bd { background:var(--mixed);    }
+.service-name { font-size:12px; color:var(--accent); margin-bottom:8px; font-weight:500; }
+.card-desc { font-size:13px; color:var(--ts); line-height:1.65; margin-bottom:12px; }
+.feat-block { background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); padding:10px 12px; margin-bottom:12px; }
+.feat-block .feat-label { font-size:10px; font-family:'Space Grotesk',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--tm); margin-bottom:6px; }
+.feat-block .feat-text { font-size:12px; color:var(--ts); line-height:1.6; }
+.card-footer { display:flex; gap:4px; flex-wrap:wrap; margin-top:auto; padding-top:4px; }
+.lic-tag { font-size:10px; font-family:'Space Grotesk',sans-serif; padding:2px 7px; border-radius:4px; font-weight:500; }
+.lt-e { background:rgba(59,130,246,.12); color:#93C5FD; border:1px solid rgba(59,130,246,.2); }
+.lt-c { background:rgba(16,185,129,.12); color:#6EE7B7; border:1px solid rgba(16,185,129,.2); }
+.lt-m { background:rgba(100,116,139,.12); color:#94A3B8; border:1px solid rgba(100,116,139,.2); }
+.gen-tag { font-size:10px; padding:2px 7px; border-radius:4px; background:transparent; color:var(--tm); border:1px solid var(--border); }
+.empty { grid-column:1/-1; text-align:center; padding:4rem 2rem; color:var(--tm); }
+
+/* ── ANALYTICS PAGE ── */
+.analytics-wrap { max-width:1200px; margin:0 auto; padding:2rem; }
+.analytics-hero { margin-bottom:2.5rem; }
+.analytics-hero h2 { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:600; margin-bottom:.4rem; }
+.analytics-hero p { font-size:13px; color:var(--ts); }
+
+.section-title {
+  font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--tm);
+  margin-bottom:1rem; padding-bottom:.5rem; border-bottom:1px solid var(--border);
+}
+
+/* Charts row */
+.charts-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-bottom:2rem; }
+.chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.25rem; }
+.chart-card h3 { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; margin-bottom:4px; }
+.chart-card .chart-sub { font-size:11px; color:var(--tm); margin-bottom:1rem; }
+.chart-wrap { position:relative; }
+
+/* Custom legend */
+.clegend { display:flex; flex-wrap:wrap; gap:10px; margin-top:1rem; }
+.cli { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ts); }
+.cli-sq { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+
+/* B2B / B2C breakdown */
+.split-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-bottom:2rem; }
+.split-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.25rem; }
+.split-card h3 { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; margin-bottom:.25rem; }
+.split-card .sc-sub { font-size:11px; color:var(--tm); margin-bottom:1rem; }
+.model-bar { height:8px; border-radius:4px; background:var(--surface2); overflow:hidden; margin-bottom:.75rem; display:flex; }
+.mb-seg { height:100%; transition:width .4s ease; }
+.model-items { display:flex; flex-direction:column; gap:6px; }
+.model-row { display:flex; align-items:center; gap:8px; }
+.model-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.model-name { font-size:12px; color:var(--ts); flex:1; }
+.model-count { font-family:'Space Grotesk',sans-serif; font-size:12px; color:var(--tp); font-weight:500; }
+.model-pct { font-size:11px; color:var(--tm); min-width:32px; text-align:right; }
+
+/* Timeline */
+.timeline-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.25rem; margin-bottom:2rem; }
+.timeline-card h3 { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; margin-bottom:.25rem; }
+.timeline-card .tc-sub { font-size:11px; color:var(--tm); margin-bottom:1.25rem; }
+
+/* cohort buckets */
+.cohort-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:1.5rem; }
+.cohort-bucket { background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); padding:12px; }
+.cb-label { font-size:10px; font-family:'Space Grotesk',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--tm); margin-bottom:6px; }
+.cb-count { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:600; margin-bottom:4px; }
+.cb-names { font-size:11px; color:var(--tm); line-height:1.5; }
+
+/* Timeline list */
+.tl-list { display:flex; flex-direction:column; gap:0; }
+.tl-year-group { margin-bottom:.75rem; }
+.tl-year { font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:600; color:var(--accent); letter-spacing:.06em; margin-bottom:6px; }
+.tl-items { display:flex; flex-direction:column; gap:4px; }
+.tl-item { display:flex; align-items:center; gap:10px; padding:7px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); }
+.tl-date { font-family:'Space Grotesk',sans-serif; font-size:11px; color:var(--tm); min-width:56px; }
+.tl-name { font-size:12px; font-weight:500; color:var(--tp); flex:1; }
+
+/* Tenure bars */
+.tenure-table { width:100%; border-collapse:collapse; }
+.tenure-table th { text-align:left; font-size:11px; font-family:'Space Grotesk',sans-serif; color:var(--tm); padding:6px 8px; border-bottom:1px solid var(--border); }
+.tenure-table td { padding:7px 8px; border-bottom:1px solid var(--border); font-size:12px; vertical-align:middle; }
+.tenure-table tr:last-child td { border-bottom:none; }
+.tenure-name { font-weight:500; color:var(--tp); }
+.tenure-bar-wrap { display:flex; align-items:center; gap:8px; }
+.tenure-bar { height:6px; border-radius:3px; min-width:2px; }
+.tenure-yrs { font-family:'Space Grotesk',sans-serif; font-size:11px; color:var(--tm); white-space:nowrap; }
+
+/* tag cloud */
+.tag-cloud-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.25rem; margin-bottom:2rem; }
+.tag-cloud-card h3 { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; margin-bottom:.25rem; }
+.tag-cloud-card .tc-sub { font-size:11px; color:var(--tm); margin-bottom:1rem; }
+.tag-cloud { display:flex; flex-wrap:wrap; gap:6px; }
+.tc-tag { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:var(--rs); border:1px solid var(--border); font-size:12px; color:var(--ts); }
+.tc-tag .tc-n { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:11px; color:var(--tm); }
+
+/* ── GRAPH PAGE ── */
+.gpage-wrap { display:flex; flex-direction:column; height:calc(100vh - 56px); }
+.gpage-header { padding:1.5rem 2rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-shrink:0; }
+.gpage-title { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:600; margin-bottom:.25rem; }
+.gpage-sub { font-size:13px; color:var(--ts); max-width:560px; }
+.gpage-stats { display:flex; gap:16px; flex-wrap:wrap; flex-shrink:0; }
+.gstat { background:var(--surface); border:1px solid var(--border); border-radius:var(--rs); padding:8px 14px; text-align:center; }
+.gstat .gsv { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:600; color:var(--tp); }
+.gstat .gsl { font-size:10px; color:var(--tm); }
+.gpage-body { display:flex; flex:1; overflow:hidden; }
+.gpage-sidebar { width:200px; flex-shrink:0; border-right:1px solid var(--border); padding:1.25rem 1rem; overflow-y:auto; }
+.sidebar-section {}
+.sidebar-title { font-size:11px; font-family:'Space Grotesk',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--tm); margin-bottom:10px; }
+.gpage-canvas { flex:1; overflow:hidden; position:relative; }
+#graph-canvas-wrap { width:100%; }
+#graph-canvas-wrap svg { display:block; }
+
+/* ── DETAIL PANEL ── */
+#detail-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(2px); z-index:200; }
+#detail-backdrop.open { display:block; }
+#detail-panel { position:fixed; top:0; right:0; bottom:0; width:500px; max-width:100vw; background:#13161C; border-left:1px solid rgba(255,255,255,0.1); z-index:201; overflow-y:auto; transform:translateX(100%); transition:transform .3s cubic-bezier(0.4,0,0.2,1); }
+#detail-panel.open { transform:translateX(0); }
+.dp-header { padding:1.5rem 1.5rem 1.25rem; border-bottom:1px solid var(--border); position:sticky; top:0; background:#13161C; z-index:1; }
+.dp-close { position:absolute; top:1rem; right:1rem; width:32px; height:32px; border:none; background:rgba(255,255,255,0.07); border-radius:50%; cursor:pointer; color:var(--tp); font-size:14px; display:flex; align-items:center; justify-content:center; }
+.dp-close:hover { background:rgba(255,255,255,0.14); }
+.dp-name { font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:600; margin:.5rem 0 .2rem; }
+.dp-corp-sub { font-size:12px; color:var(--tm); }
+.dp-service-sub { font-size:13px; color:var(--accent); margin-top:.25rem; font-weight:500; }
+.dp-body { padding:1.5rem; }
+.dp-section { margin-bottom:1.75rem; }
+.dp-sec-title { font-size:10px; font-family:'Space Grotesk',sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--tm); margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+.dp-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.dp-metric { background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); padding:10px 8px; text-align:center; }
+.dp-metric .dmv { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--tp); word-break:keep-all; }
+.dp-metric .dml { font-size:10px; color:var(--tm); margin-top:3px; }
+.dp-desc { font-size:13px; color:var(--ts); line-height:1.7; }
+.dp-feat-box { background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); padding:12px 14px; }
+.dp-feat-text { font-size:12px; color:var(--ts); line-height:1.7; }
+.dp-kv { display:flex; flex-direction:column; gap:8px; }
+.dp-kv-row { display:flex; gap:12px; }
+.dp-key { font-size:11px; color:var(--tm); width:72px; flex-shrink:0; padding-top:1px; }
+.dp-val { font-size:12px; color:var(--ts); flex:1; }
+.dp-val.hi { color:var(--tp); font-weight:500; }
+.dp-link { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--accent); text-decoration:none; }
+.dp-link:hover { text-decoration:underline; }
+.dp-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.dp-tag { font-size:11px; padding:3px 8px; border-radius:4px; background:transparent; color:var(--tm); border:1px solid var(--border); }
+.dp-rel { display:flex; flex-direction:column; gap:6px; }
+.dp-rel-item { display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); }
+.dp-rel-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dp-rel-type { font-size:10px; font-family:'Space Grotesk',sans-serif; color:var(--tm); min-width:52px; }
+.dp-rel-name { font-size:12px; color:var(--tp); flex:1; }
+.dp-rel-detail { font-size:11px; color:var(--tm); }
+.card { cursor:pointer; }
+
+/* ── TIMELINE PAGE ── */
+.tl-page-wrap { display:flex; flex-direction:column; height:calc(100vh - 56px); overflow:hidden; }
+.tl-page-header { padding:1.25rem 2rem 1rem; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.tl-page-title { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:600; margin-bottom:.25rem; }
+.tl-page-sub { font-size:13px; color:var(--ts); }
+.tl-legend { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.tl-li { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--tm); font-family:'Space Grotesk',sans-serif; }
+.tl-li-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.tl-li-line { width:16px; height:2px; flex-shrink:0; border-radius:1px; }
+.tl-scroll-wrap { flex:1; overflow-x:auto; overflow-y:hidden; position:relative; }
+.tl-scroll-wrap::-webkit-scrollbar { height:4px; }
+.tl-scroll-wrap::-webkit-scrollbar-track { background:var(--surface); }
+.tl-scroll-wrap::-webkit-scrollbar-thumb { background:var(--border-h); border-radius:2px; }
+#tl-canvas { display:block; height:100%; }
+#tl-tooltip { display:none; position:fixed; z-index:999; background:#13161C; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px 14px; max-width:260px; pointer-events:none; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+
+@media (max-width:600px) {
+  .site-header { padding:0 1rem; gap:.75rem; }
+  .site-meta { display:none; }
+  .hero,.metrics,.controls-wrap,.grid,.analytics-wrap,.legend,.divider { padding-left:1rem; padding-right:1rem; }
+  .grid { grid-template-columns:1fr; }
+  .result-count { display:none; }
+  .charts-row,.split-row { grid-template-columns:1fr; }
+  .gpage-header { padding:1rem; flex-direction:column; }
+  .gpage-sidebar { display:none; }
+  .gpage-stats { gap:8px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">VASP<span>·</span>KR</div>
+  <div class="site-meta">가상자산사업자 신고 정보공개 현황</div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('list',this)">목록</button>
+    <button class="nav-tab" onclick="showPage('analytics',this)">분석</button>
+    <button class="nav-tab" onclick="showPage('graph',this)">관계도</button>
+    <button class="nav-tab" onclick="showPage('timeline',this)">타임라인</button>
+  </nav>
+  <div class="header-date">FIU · 2025.01.23 기준</div>
+</header>
+
+<!-- ══════════════════ LIST PAGE ══════════════════ -->
+<div id="page-list" class="page active">
+  <section class="hero">
+    <div class="hero-eyebrow">특정금융정보법 제7조 신고수리</div>
+    <h1 class="hero-title">국내 가상자산사업자<br>신고 현황 42개사</h1>
+    <p class="hero-sub">금융정보분석원(FIU) 신고수리 완료 사업자 전체 목록. 기업명·서비스·특장점·라이선스 유형을 확인하세요.</p>
+  </section>
+  <div class="metrics" id="metrics"></div>
+  <div class="legend">
+    <span class="li"><span class="ldot" style="background:var(--exchange)"></span>거래소 (가~마 포함)</span>
+    <span class="li"><span class="ldot" style="background:var(--custody)"></span>수탁·관리 (다·라 중심)</span>
+    <span class="li"><span class="ldot" style="background:var(--mixed)"></span>복합 (부분 유형)</span>
+  </div>
+  <div class="divider"></div>
+  <div class="controls-wrap">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="기업명, 서비스, 키워드…" oninput="renderList()">
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setFilter(this,'')">전체</button>
+      <button class="filter-tab" onclick="setFilter(this,'e')">거래소</button>
+      <button class="filter-tab t-c" onclick="setFilter(this,'c')">수탁·관리</button>
+      <button class="filter-tab t-m" onclick="setFilter(this,'m')">복합</button>
+    </div>
+    <span class="result-count" id="countLabel"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ══════════════════ GRAPH PAGE ══════════════════ -->
+<div id="page-graph" class="page">
+  <div class="gpage-wrap">
+    <div class="gpage-header">
+      <div>
+        <h2 class="gpage-title">금융기관 · VASP 관계 지도</h2>
+        <p class="gpage-sub">은행·증권사의 지분투자·실명계좌 제휴·파트너십 관계를 시각화합니다. 노드를 드래그하거나 스크롤로 확대/축소할 수 있습니다.</p>
+      </div>
+      <div class="gpage-stats" id="graph-stats"></div>
+    </div>
+    <div class="gpage-body">
+      <aside class="gpage-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">필터</div>
+          <div id="graph-filters"></div>
+        </div>
+        <div class="sidebar-section" style="margin-top:1rem">
+          <div class="sidebar-title">범례</div>
+          <div style="font-size:11px;color:#4E5260;margin-bottom:6px">선 두께 = 관계 강도</div>
+          <div style="font-size:11px;color:#4E5260">점선 = 파트너십/서비스연계</div>
+        </div>
+      </aside>
+      <div class="gpage-canvas">
+        <div id="graph-canvas-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="graph-tooltip" style="display:none;position:fixed;z-index:999;background:#13161C;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:12px 14px;max-width:260px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
+
+<!-- ══════════════════ DETAIL PANEL ══════════════════ -->
+<div id="detail-backdrop" onclick="closeDetail()"></div>
+<aside id="detail-panel">
+  <div class="dp-header">
+    <button class="dp-close" onclick="closeDetail()" aria-label="닫기">✕</button>
+    <div id="dp-badge-wrap"></div>
+    <div class="dp-name" id="dp-name"></div>
+    <div class="dp-corp-sub" id="dp-corp"></div>
+    <div class="dp-service-sub" id="dp-service"></div>
+  </div>
+  <div class="dp-body" id="dp-content"></div>
+</aside>
+
+<!-- ══════════════════ TIMELINE PAGE ══════════════════ -->
+<div id="page-timeline" class="page">
+  <div class="tl-page-wrap">
+    <div class="tl-page-header">
+      <div>
+        <h2 class="tl-page-title">블록체인 · VASP 타임라인</h2>
+        <p class="tl-page-sub">2021년 특금법 시행부터 현재까지 한국·미국 주요 사건 및 국내 가상자산사업자 신고수리 일자</p>
+      </div>
+      <div class="tl-legend">
+        <span class="tl-li"><span class="tl-li-dot" style="background:#3B82F6"></span>한국 규제·법령</span>
+        <span class="tl-li"><span class="tl-li-dot" style="background:#EF4444"></span>시장 사태·붕괴</span>
+        <span class="tl-li"><span class="tl-li-dot" style="background:#10B981"></span>시장 성장·승인</span>
+        <span class="tl-li"><span class="tl-li-dot" style="background:#F59E0B"></span>미국 시장 이벤트</span>
+        <span class="tl-li" style="margin-left:4px"><span class="tl-li-dot" style="background:#60A5FA;border:1px solid #3B82F6"></span>거래소 신고수리</span>
+        <span class="tl-li"><span class="tl-li-dot" style="background:#34D399;border:1px solid #10B981"></span>수탁·관리</span>
+        <span class="tl-li"><span class="tl-li-dot" style="background:#94A3B8;border:1px solid #64748B"></span>복합</span>
+      </div>
+    </div>
+    <div class="tl-scroll-wrap">
+      <div id="tl-canvas"></div>
+    </div>
+  </div>
+</div>
+<div id="tl-tooltip"></div>
+
+<!-- ══════════════════ ANALYTICS PAGE ══════════════════ -->
+<div id="page-analytics" class="page">
+  <div class="analytics-wrap">
+    <div class="analytics-hero">
+      <h2>VASP 시장 구조 분석</h2>
+      <p>42개 신고수리 사업자를 라이선스 유형·서비스 모델·신고 시기별로 분석합니다.</p>
+    </div>
+
+    <div class="section-title">01 — 사업자 분류 분포</div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>사업자 주분류 유형</h3>
+        <div class="chart-sub">42개사 기준 주된 사업 카테고리</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-cat"></canvas></div>
+        <div class="clegend" id="leg-cat"></div>
+      </div>
+      <div class="chart-card">
+        <h3>신고 유형 건수 (중복 포함)</h3>
+        <div class="chart-sub">가~마 유형별 신고 사업자 수 (한 사업자가 복수 가능)</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-types"></canvas></div>
+        <div class="clegend" id="leg-types"></div>
+      </div>
+      <div class="chart-card">
+        <h3>B2B vs B2C vs 혼합</h3>
+        <div class="chart-sub">주요 고객 대상 기준 분류</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-model"></canvas></div>
+        <div class="clegend" id="leg-model"></div>
+      </div>
+    </div>
+
+    <div class="section-title">02 — 서비스 모델 상세</div>
+    <div class="split-row">
+      <div class="split-card">
+        <h3>고객 유형별 분류</h3>
+        <div class="sc-sub">주요 타깃 고객군 기준</div>
+        <div class="model-bar" id="modelBar"></div>
+        <div class="model-items" id="modelItems"></div>
+      </div>
+      <div class="split-card">
+        <h3>원화마켓 유무</h3>
+        <div class="sc-sub">실명확인 입출금 계좌 기반 원화 거래 여부</div>
+        <div class="model-bar" id="wonBar"></div>
+        <div class="model-items" id="wonItems"></div>
+      </div>
+      <div class="split-card">
+        <h3>은행 연계 여부</h3>
+        <div class="sc-sub">시중은행 지분 참여 또는 실명계좌 제휴 유무</div>
+        <div class="model-bar" id="bankBar"></div>
+        <div class="model-items" id="bankItems"></div>
+      </div>
+    </div>
+
+    <div class="section-title">03 — 신고수리 시기 분석</div>
+    <div class="timeline-card">
+      <h3>신고수리 연도별 코호트</h3>
+      <div class="tc-sub">특금법 가상자산사업자 신고제도 시행(2021.9) 이후 현재까지</div>
+      <div class="cohort-grid" id="cohortGrid"></div>
+      <div class="tl-list" id="tlList"></div>
+    </div>
+
+    <div class="timeline-card">
+      <h3>라이선스 보유 기간 (현재까지)</h3>
+      <div class="tc-sub">신고수리일 기준 2025.01.23 현재까지 누적 기간</div>
+      <div style="overflow-x:auto">
+        <table class="tenure-table">
+          <thead><tr>
+            <th style="min-width:100px">사업자</th>
+            <th>보유 기간</th>
+            <th style="min-width:60px; text-align:right">연수</th>
+          </tr></thead>
+          <tbody id="tenureBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">04 — 서비스 키워드 분포</div>
+    <div class="tag-cloud-card">
+      <h3>태그 빈도 분석</h3>
+      <div class="tc-sub">전체 사업자 태그 중 등장 빈도 기준 정렬</div>
+      <div class="tag-cloud" id="tagCloud"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════ DATA ═══════════════════════════════
+   출처: FIU 가상자산사업자 신고에 관한 정보공개현황 (2025.1.23 기준)
+   유형: 가.매도·매수  나.교환  다.이전  라.보관·관리  마.중개·알선
+   cat:  e=거래소  c=수탁·관리  m=복합
+══════════════════════════════════════════════════════════════════════ */
+const DATA = [
+  /* ── 거래소 (원화마켓) ── */
+  { name:"업비트",    corp:"두나무(주)",              service:"원화·코인 현물거래소",
+    ceo:"이석우", regNo:"119-86-54968", address:"서울특별시 강남구 테헤란로4길 14",
+    applyDate:"2021-08-20", website:"https://upbit.com",
+    desc:"국내 최대 원화마켓 거래소. 200종 이상 거래 지원. 공시 제도 및 유의종목 관리로 이용자 보호 체계 선도.",
+    feat:"시장점유율 80%+, 트래블룰 글로벌 연동(CodeVASP), KB·NH은행 실명계좌, 하나금융·한화증권·삼성 지분투자",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","대형거래소","기관"],
+    b2:"b2c", won:true, bank:true, regDate:"2021-10-06" },
+
+  { name:"코빗",      corp:"(주)코빗",                service:"원화·코인 현물거래소",
+    ceo:"오세진", regNo:"220-88-61399", address:"서울특별시 강남구 테헤란로5길 7",
+    applyDate:"2021-09-10", website:"https://www.korbit.co.kr",
+    desc:"국내 최초 거래소(2013년 설립). NXC(넥슨 지주사) 최대주주. KDAC 설립 모회사로 수탁 생태계 연계. 미래에셋 경영권 인수 MOU.",
+    feat:"국내 최초(2013), 신한은행 실명계좌, KDAC 설립 주도, 미래에셋 인수 추진",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","최초거래소"],
+    b2:"b2c", won:true, bank:true, regDate:"2021-10-20" },
+
+  { name:"코인원",    corp:"(주)코인원",              service:"원화·코인 현물거래소",
+    ceo:"차명훈", regNo:"261-81-07437", address:"서울특별시 영등포구 여의대로 108",
+    applyDate:"2021-09-10", website:"https://coinone.co.kr",
+    desc:"국내 3위 거래소. 체계적인 상장 심사 프로세스와 리서치 조직 운영. OKX벤처스·한국투자증권 지분 취득(2026).",
+    feat:"카카오뱅크 실명계좌, 체계적 상장심사, OKX·한국투자증권 20% 지분 계약",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","상장심사"],
+    b2:"b2c", won:true, bank:true, regDate:"2021-11-25" },
+
+  { name:"빗썸",      corp:"(주)빗썸코리아",           service:"원화·코인 현물거래소",
+    ceo:"이재원", regNo:"220-88-71844", address:"서울특별시 강남구 테헤란로 124",
+    applyDate:"2021-09-09", website:"https://www.bithumb.com",
+    desc:"국내 2위 원화마켓 거래소. 법인 전용 API 서비스 운영. 삼성증권 IPO 주관으로 코스닥 상장 추진 중.",
+    feat:"NH농협은행 실명계좌, 법인 API 서비스, 삼성증권 IPO 주관",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","대형거래소","법인API"],
+    b2:"mix", won:true, bank:true, regDate:"2021-12-02" },
+
+  { name:"플라이빗",  corp:"(주)한국디지털거래소",      service:"원화·코인 거래소 + OTC",
+    ceo:"김석진", regNo:"194-87-00761", address:"서울특별시 서초구 강남대로 527",
+    applyDate:"2021-09-17",
+    desc:"중소 원화마켓 거래소. OTC(장외거래) 서비스 병행 운영으로 B2B 대량 거래 특화.",
+    feat:"OTC 대량거래, 기업 고객 대상 서비스",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","OTC","B2B"],
+    b2:"mix", won:true, bank:true, regDate:"2021-12-01" },
+
+  /* ── 거래소 (코인마켓 / 글로벌) ── */
+  { name:"지닥(GDAC)", corp:"(주)피어테크",            service:"코인·코인 교환 거래소",
+    ceo:"한승환", regNo:"549-88-00819", address:"서울특별시 강남구 봉은사로112길 6",
+    applyDate:"2021-09-23", website:"https://www.gdac.io",
+    desc:"피어테크 운영 코인 교환 전용 거래소. 다양한 알트코인 상장.",
+    feat:"알트코인 다양성, 코인마켓 전용 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-11-29" },
+
+  { name:"고팍스",    corp:"(주)스트리미",             service:"원화·코인 현물거래소",
+    ceo:"이준행", regNo:"432-87-00120", address:"서울특별시 강남구 봉은사로 179",
+    applyDate:"2021-09-24", website:"https://www.gopax.co.kr",
+    desc:"다수 알트코인 지원 거래소. 전북은행 실명계좌 보유.",
+    feat:"전북은행 실명계좌, 다양한 알트코인 상장",
+    types:["가","나","다","라","마"], cat:"e", tags:["원화마켓","알트코인"],
+    b2:"b2c", won:true, bank:true, regDate:"2021-12-09" },
+
+  { name:"BTX",       corp:"차일들리(주)",             service:"코인·코인 교환 거래소",
+    ceo:"김은태", regNo:"729-86-01268", address:"서울특별시 성동구 연무장5길 9-16",
+    applyDate:"2021-09-24",
+    desc:"코인 교환 전용 거래소. 실명계좌 없이 코인간 교환 가능.",
+    feat:"실명계좌 불필요, 코인간 교환 전문",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-09" },
+
+  { name:"프로비트",  corp:"오션스(주)",              service:"글로벌 코인 거래소",
+    ceo:"도현수", regNo:"262-88-00547", address:"서울특별시 강남구 테헤란로2길 21",
+    applyDate:"2021-09-24", website:"https://www.probit.kr",
+    desc:"글로벌 서비스 기반 코인 거래소. 다양한 신규 코인 상장 및 IEO 서비스 제공.",
+    feat:"글로벌 서비스, 신규 코인 IEO, 알트코인 다양성",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","글로벌","IEO"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-09" },
+
+  { name:"포블",      corp:"(주)포블게이트",           service:"코인·코인 교환 거래소",
+    ceo:"안현준", regNo:"136-87-01478", address:"서울특별시 서초구 서초대로 397",
+    applyDate:"2021-09-24",
+    desc:"코인 교환 전용 중소 거래소. 다양한 알트코인 지원.",
+    feat:"알트코인 다양성, 낮은 진입 장벽",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-21" },
+
+  { name:"후오비코리아", corp:"후오비(주)",            service:"코인 거래소",
+    ceo:"최준용", regNo:"420-87-00883", address:"서울특별시 성동구 아차산로17길 48",
+    applyDate:"2021-09-24",
+    desc:"글로벌 후오비 그룹 한국법인 거래소.",
+    feat:"글로벌 후오비 브랜드, 다양한 코인 지원",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","글로벌"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-21" },
+
+  { name:"코어닥스",  corp:"(주)코어닥스",            service:"코인·코인 교환 거래소",
+    ceo:"임요송", regNo:"894-86-01183", address:"서울특별시 구로구 디지털로 242",
+    applyDate:"2021-09-24",
+    desc:"코인 교환 전용 소규모 거래소. 안정적 소규모 운영.",
+    feat:"코인마켓 전용, 소규모 안정 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-17" },
+
+  { name:"플랫타익스체인지", corp:"(주)플랫타이엑스", service:"코인 거래소",
+    ceo:"강준우", regNo:"209-88-00963", address:"대구광역시 동구 동대구로 475",
+    applyDate:"2021-09-23",
+    desc:"대구 기반 코인 거래소. 다양한 디지털자산 거래 서비스.",
+    feat:"지역 기반 운영, 다양한 코인 지원",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+
+  { name:"한빗코",    corp:"(주)한빗코코리아",         service:"코인 거래소",
+    ceo:"유승재", regNo:"554-86-00781", address:"서울특별시 동작구 여의대방로62길 1",
+    applyDate:"2021-09-24",
+    desc:"중소 코인 거래소. 다양한 코인 거래 서비스 제공.",
+    feat:"다양한 코인 지원, 안정적 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+
+  { name:"비블록",    corp:"(주)그레이브릿지",         service:"코인 거래소",
+    ceo:"황익찬", regNo:"155-86-01720", address:"서울특별시 강남구 선릉로131길 9",
+    applyDate:"2021-09-23",
+    desc:"중소 코인 거래 플랫폼 (법인명 그레이브릿지). 안정적 소규모 운영.",
+    feat:"소규모 안정 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+
+  { name:"비트레이드", corp:"(주)블록체인컴퍼니",      service:"코인 거래소",
+    ceo:"최세빈", regNo:"437-87-00988", address:"서울특별시 강남구 언주로 136길 3",
+    applyDate:"2021-09-24",
+    desc:"코인 거래 전문 플랫폼.",
+    feat:"코인마켓 전용, 안정적 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-23" },
+
+  { name:"오케이비트", corp:"(주)포리스닥스코리아",     service:"코인 교환·중개",
+    ceo:"라파엘드마르코이멜로", regNo:"885-88-00694", address:"서울특별시 종로구 종로3길 17",
+    applyDate:"2021-09-23",
+    desc:"코인 교환 및 중개 서비스 중심 플랫폼.",
+    feat:"코인 교환 전문, 소규모 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","중개"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"빗크몬",    corp:"(주)골든퓨쳐스",          service:"코인 거래 플랫폼",
+    ceo:"권정만", regNo:"791-81-00992", address:"서울특별시 서초구 서초대로78길 52",
+    applyDate:"2021-09-24",
+    desc:"중소 코인 거래 플랫폼.",
+    feat:"다양한 코인 지원",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"코인엔코인", corp:"(주)코엔코코리아",        service:"코인 거래소",
+    ceo:"전현풍", regNo:"311-81-24221", address:"서울특별시 송파구 송파대로22길 4-10",
+    applyDate:"2021-09-24",
+    desc:"코인 거래 전문 중소 플랫폼.",
+    feat:"코인마켓 전용 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"보라비트",  corp:"(주)뱅코",               service:"코인 거래 플랫폼",
+    ceo:"김성훈", regNo:"280-88-00977", address:"전라북도 전주시 덕진구 오공로 123",
+    applyDate:"2021-09-24",
+    desc:"전주 기반 코인 거래 전문 소규모 플랫폼.",
+    feat:"소규모 코인 거래 플랫폼",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"캐셔레스트", corp:"(주)뉴링크",             service:"코인 거래소",
+    ceo:"이강원", regNo:"185-86-00760", address:"서울특별시 강남구 학동로31길 12",
+    applyDate:"2021-09-24",
+    desc:"코인 거래 전문 중소 거래소.",
+    feat:"코인마켓 전용 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+
+  { name:"텐앤텐",    corp:"(주)텐앤텐",             service:"코인 거래소",
+    ceo:"조중철", regNo:"659-88-01191", address:"전라남도 목포시 평화로 54",
+    applyDate:"2021-09-24",
+    desc:"목포 기반 코인 거래 전문 플랫폼.",
+    feat:"코인마켓 운영, 지역 기반",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+
+  { name:"에이프로빗", corp:"(주)에이프로코리아",      service:"코인 거래소",
+    ceo:"강명구", regNo:"208-87-01657", address:"서울특별시 강남구 테헤란로63길 11",
+    applyDate:"2021-09-24",
+    desc:"코인 거래 전문 거래소. 다양한 알트코인 서비스 제공.",
+    feat:"알트코인 다양성, 안정적 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-01-04" },
+
+  { name:"오아시스",  corp:"(주)가디언홀딩스",        service:"코인 교환 거래소",
+    ceo:"이동민", regNo:"826-81-00997", address:"서울특별시 강남구 역삼로 546",
+    applyDate:"2021-09-24",
+    desc:"코인 교환 전용 중소 거래소. 다양한 알트코인 지원.",
+    feat:"알트코인 특화, 코인마켓 전용",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓","알트코인"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-02-10" },
+
+  { name:"큐비트",    corp:"큐비트(주)",             service:"코인 거래소",
+    ceo:"윤성준", regNo:"778-81-01931", address:"서울특별시 강남구 테헤란로13길 31-1",
+    applyDate:"2021-09-24",
+    desc:"중소 코인 거래 전문 거래소.",
+    feat:"코인마켓 전용, 안정적 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-02-10" },
+
+  { name:"코인빗",    corp:"(주)엑시아소프트",        service:"코인 거래소",
+    ceo:"조강호", regNo:"120-87-79307", address:"서울특별시 강남구 봉은사로 426",
+    applyDate:"2022-06-07",
+    desc:"코인 거래 전문 거래소.",
+    feat:"코인마켓 전용 운영",
+    types:["가","나","다","라","마"], cat:"e", tags:["코인마켓"],
+    b2:"b2c", won:false, bank:false, regDate:"2022-09-01" },
+
+  /* ── 수탁·관리 ── */
+  { name:"KODA",      corp:"(주)한국디지털에셋",      service:"기관 대상 디지털자산 수탁",
+    ceo:"조진석", regNo:"618-81-36254", address:"서울특별시 강남구 테헤란로27길 8",
+    applyDate:"2021-09-17", website:"https://www.kodax.com",
+    desc:"KB국민은행·해시드·해치랩스 합작법인. 국내 최대 수탁사(AUM 약 8조원). 기관·법인 전용 cold/warm wallet 수탁.",
+    feat:"KB국민은행 연계, 국내 수탁 시장 1위, 스테이킹 등 부가 상품 연계",
+    types:["다","라"], cat:"c", tags:["기관수탁","B2B","은행연계"],
+    b2:"b2b", won:false, bank:true, regDate:"2021-12-17" },
+
+  { name:"KDAC",      corp:"(주)한국디지털자산수탁",  service:"기관 대상 디지털자산 수탁",
+    ceo:"김민수·이청우", regNo:"809-86-01583", address:"서울특별시 서초구 강남대로 525",
+    applyDate:"2021-09-24", website:"https://www.kdac.io",
+    desc:"코빗·신한은행 설립. ETF 수탁 시장 선점. 신한·NH금융그룹 지분 보유. 카르도 합병 후 규모 확대.",
+    feat:"신한·NH금융 주주, ETF 수탁 특화, 카르도 합병, 기관 전용 플랫폼",
+    types:["다","라"], cat:"c", tags:["기관수탁","B2B","은행연계","ETF수탁"],
+    b2:"b2b", won:false, bank:true, regDate:"2021-12-17" },
+
+  { name:"오하이월렛", corp:"(주)헥슬란트",           service:"가상자산 지갑·수탁",
+    ceo:"강준우·박인수", regNo:"636-88-00831", address:"서울특별시 강남구 강남대로 340",
+    applyDate:"2021-09-24",
+    desc:"헥슬란트 운영 가상자산 지갑 및 수탁 서비스. 개인·기업 대상 자산 보관·이전.",
+    feat:"지갑 서비스, 보안 특화 인프라",
+    types:["다","라"], cat:"c", tags:["지갑","수탁"],
+    b2:"mix", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"마이키핀월렛", corp:"(주)씨피랩스",         service:"가상자산 지갑·수탁",
+    ceo:"어준선", regNo:"144-81-18100", address:"경기도 성남시 수정구 달래내로 46",
+    applyDate:"2021-09-24",
+    desc:"씨피랩스의 마이키핀 월렛. 개인 및 기업 대상 디지털자산 보관·관리 서비스.",
+    feat:"지갑 서비스, 보안 특화",
+    types:["다","라"], cat:"c", tags:["지갑","수탁"],
+    b2:"mix", won:false, bank:false, regDate:"2022-01-04" },
+
+  { name:"카르도",    corp:"(주)카르도",              service:"기업 대상 디지털자산 수탁",
+    ceo:"이청우", regNo:"774-87-02041", address:"서울특별시 강남구 논현로87길 15",
+    applyDate:"2021-09-24",
+    desc:"기업 대상 수탁 서비스 전문. KDAC와 합병하여 규모 확대.",
+    feat:"기업 수탁 전문, KDAC 합병",
+    types:["다","라"], cat:"c", tags:["기업수탁","B2B"],
+    b2:"b2b", won:false, bank:false, regDate:"2022-02-10" },
+
+  { name:"델리오",    corp:"(주)델리오",              service:"디지털자산 수탁·이전",
+    ceo:"정상호", regNo:"283-88-00879", address:"서울특별시 강남구 삼성로85길 26",
+    applyDate:"2021-09-24",
+    desc:"가상자산 수탁 및 이전 서비스. 운영 사태 이후 재정비 중.",
+    feat:"수탁·이전 특화",
+    types:["다","라"], cat:"c", tags:["수탁","이전"],
+    b2:"mix", won:false, bank:false, regDate:"2022-02-12" },
+
+  { name:"커스텔라",  corp:"(주)마인드시프트",        service:"디지털자산 수탁·관리",
+    ceo:"박정주", regNo:"634-86-01747", address:"대구광역시 중구 국채보상로 558-1",
+    applyDate:"2022-05-24",
+    desc:"대구 기반 수탁·관리 전문 사업자. 재단·중소기업 대상 서비스.",
+    feat:"재단·중소기업 특화, 보안 인프라",
+    types:["다","라"], cat:"c", tags:["기업수탁","재단"],
+    b2:"b2b", won:false, bank:false, regDate:"2022-06-27" },
+
+  { name:"인피닛블록", corp:"(주)인피닛블록",         service:"기업 대상 커스터디 플랫폼",
+    ceo:"정구태", regNo:"306-88-02374", address:"서울특별시 강남구 테헤란로77길 11-12",
+    applyDate:"2023-05-10", website:"https://www.infinitblock.com",
+    desc:"자체 커스터디 플랫폼 '카본(Carbon)' 운영. 멀티시그 기반 기업 지갑 관리 및 Web3 인프라 연동.",
+    feat:"카본 플랫폼, 멀티시그 지갑, Web3 인프라, iM뱅크 지분투자",
+    types:["다","라"], cat:"c", tags:["기업수탁","B2B","Web3"],
+    b2:"b2b", won:false, bank:true, regDate:"2023-08-07" },
+
+  { name:"디에스알브이랩스", corp:"(주)디에스알브이랩스", service:"노드 운영·커스터디·스테이킹",
+    ceo:"김지윤", regNo:"659-87-01307", address:"서울특별시 강남구 봉은사로20길 28",
+    applyDate:"2023-10-06", website:"https://www.dsrvlabs.com",
+    desc:"블록체인 인프라 전문. 검증인(Validator) 노드 운영 및 스테이킹 서비스 특화. ISMS 본인증 보유.",
+    feat:"멀티체인 밸리데이터, 스테이킹 전문, ISMS 본인증",
+    types:["다","라"], cat:"c", tags:["스테이킹","노드운영","B2B"],
+    b2:"b2b", won:false, bank:false, regDate:"2024-09-25" },
+
+  { name:"비댁스",    corp:"비댁스(주)",              service:"기업 대상 디지털자산 수탁",
+    ceo:"류홍열", regNo:"376-88-02126", address:"부산광역시 동구 중앙대로 365",
+    applyDate:"2024-02-14",
+    desc:"커스터디 전문 업체. 기업 대상 cold wallet 수탁 서비스. 우리은행 지분투자.",
+    feat:"커스터디 전문, 우리은행 투자, 기업 특화",
+    types:["다","라"], cat:"c", tags:["기업수탁","B2B","은행연계"],
+    b2:"b2b", won:false, bank:true, regDate:"2024-09-25" },
+
+  /* ── 복합 유형 ── */
+  { name:"하이퍼리즘", corp:"(주)하이퍼리즘",         service:"디지털자산 거래·이전",
+    ceo:"오상록·이원준", regNo:"477-86-01090", address:"서울특별시 관악구 관악로 116",
+    applyDate:"2021-09-24", website:"https://hyperithm.com",
+    desc:"가상자산 매도매수·교환·이전 서비스. 트래블룰 솔루션 자체 개발 보유.",
+    feat:"트래블룰 솔루션 자체 보유, 기업 자산 이동 특화",
+    types:["가","나","다"], cat:"m", tags:["이전","트래블룰","B2B"],
+    b2:"b2b", won:false, bank:false, regDate:"2022-01-07" },
+
+  { name:"페이코인",  corp:"PayProtocol AG",          service:"가상자산 결제·교환·수탁",
+    ceo:"신정욱", regNo:"CHE-223.137.065", address:"Bahnhofstrasse 21, 6300 Zug, Switzerland",
+    applyDate:"2021-09-24", website:"https://paycoin.com",
+    desc:"스위스 법인 기반 결제 특화 가상자산 사업자. 코인 교환·이전·보관 서비스.",
+    feat:"결제 특화, 글로벌 법인 구조",
+    types:["나","다","라"], cat:"m", tags:["결제","글로벌","코인교환"],
+    b2:"mix", won:false, bank:false, regDate:"2022-04-22" },
+
+  { name:"프라뱅",    corp:"(주)프라뱅",              service:"가상자산 이전·보관·중개",
+    ceo:"김상진", regNo:"681-81-01205", address:"서울특별시 강서구 양천로 354",
+    applyDate:"2021-09-23", renewal:"2025-01-03",
+    desc:"가상자산 이전·보관·중개 전문. 2025년 1월 갱신신고 수리 완료.",
+    feat:"이전·보관·중개 특화, 갱신신고 완료(2025.1)",
+    types:["다","라","마"], cat:"m", tags:["이전","보관","중개"],
+    b2:"mix", won:false, bank:false, regDate:"2021-12-30" },
+
+  { name:"INEX",      corp:"(주)인피니티익스체인지코리아", service:"수탁 + 이전 + 중개",
+    ceo:"이재강", regNo:"783-81-02738", address:"서울특별시 강남구 테헤란로 116",
+    applyDate:"2023-12-21",
+    desc:"차세대 서비스 표방. 기업 커스터디·이전·중개 서비스. 평생 무료 수수료 정책.",
+    feat:"기업 커스터디·이전·중개, 수수료 무료 정책, AML 강화",
+    types:["다","라","마"], cat:"m", tags:["커스터디","중개","무료수수료"],
+    b2:"mix", won:false, bank:false, regDate:"2024-10-15" },
+
+  { name:"돌핀",      corp:"(주)웨이브릿지",           service:"가상자산 교환·이전·수탁·중개",
+    ceo:"오종욱", regNo:"767-88-01245", address:"서울특별시 중구 서소문로 50",
+    applyDate:"2023-09-20",
+    desc:"웨이브릿지 운영 복합 가상자산 서비스. 교환·이전·보관·중개 서비스 제공.",
+    feat:"복합 서비스, 법인 자산 이전, 트래블룰 대응",
+    types:["나","다","라","마"], cat:"m", tags:["이전","B2B","복합"],
+    b2:"b2b", won:false, bank:false, regDate:"2024-12-18" },
+
+  { name:"바우맨",    corp:"(주)해피블록",             service:"가상자산 교환·이전·수탁·중개",
+    ceo:"김규윤", regNo:"712-86-02691", address:"서울특별시 영등포구 국제금융로 106",
+    applyDate:"2024-01-04",
+    desc:"해피블록 운영 복합 가상자산 서비스. 교환·이전·보관·중개 서비스 제공.",
+    feat:"복합 서비스, 안전한 보관 인프라",
+    types:["나","다","라","마"], cat:"m", tags:["복합","이전","보관"],
+    b2:"mix", won:false, bank:false, regDate:"2025-01-17" },
+];
+
+const TOTAL = DATA.length;
+const CAT_INFO = {
+  e: { cls:"b-e", label:"거래소" },
+  c: { cls:"b-c", label:"수탁·관리" },
+  m: { cls:"b-m", label:"복합" },
+};
+const CAT_TAG_CLS = { e:"lt-e", c:"lt-c", m:"lt-m" };
+
+function typeRange(types) {
+  if (!types || !types.length) return '';
+  const j = types.join('');
+  if (j === '가나다라마') return '가~마 전체';
+  if (j === '다라')       return '다·라 (이전·보관)';
+  if (j === '나다라마')   return '나~마';
+  if (j === '다라마')     return '다~마';
+  if (j === '가나다')     return '가~다';
+  if (j === '나다라')     return '나~라';
+  return types.join('·');
+}
+
+let activeFilter = "";
+
+/* ═══════════════════ NAVIGATION ═══════════════════ */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'analytics') buildAnalytics();
+  if (id === 'graph') buildGraph();
+  if (id === 'timeline') requestAnimationFrame(buildTimeline);
+}
+
+/* ═══════════════════ LIST PAGE ═══════════════════ */
+function setFilter(el, val) {
+  activeFilter = val;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const f = DATA.filter(c => {
+    const tm = !q || c.name.toLowerCase().includes(q) || c.service.toLowerCase().includes(q)
+      || c.corp.toLowerCase().includes(q) || (c.tags || []).some(t => t.toLowerCase().includes(q));
+    const tf = !activeFilter || c.cat === activeFilter;
+    return tm && tf;
+  });
+  document.getElementById('countLabel').textContent = `${f.length} / ${TOTAL}개사`;
+  const grid = document.getElementById('grid');
+  if (!f.length) { grid.innerHTML = '<div class="empty">검색 결과가 없습니다.</div>'; return; }
+  grid.innerHTML = f.map(c => {
+    const ci = CAT_INFO[c.cat];
+    const typeTag = `<span class="lic-tag ${CAT_TAG_CLS[c.cat]}">${typeRange(c.types)}</span>`;
+    const tagHtml = (c.tags || []).map(t => `<span class="gen-tag">${t}</span>`).join('');
+    return `<div class="card" onclick="openDetail('${c.name.replace(/'/g,"\\'")}')" role="button" tabindex="0">
+      <div class="card-top">
+        <div><div class="card-name">${c.name}</div><div class="card-corp">${c.corp}</div></div>
+        <span class="type-badge ${ci.cls}"><span class="bd"></span>${ci.label}</span>
+      </div>
+      <div class="service-name">${c.service}</div>
+      <div class="card-desc">${c.desc}</div>
+      <div class="feat-block"><div class="feat-label">특장점</div><div class="feat-text">${c.feat}</div></div>
+      <div class="card-footer">${typeTag}${tagHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMetrics() {
+  const cnt = { e:0, c:0, m:0 };
+  DATA.forEach(c => cnt[c.cat]++);
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--accent)"></span>전체 신고사업자</div><div class="mval">${TOTAL}</div><div class="msub">2025.01.23 기준</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--exchange)"></span>거래소</div><div class="mval">${cnt.e}</div><div class="msub">가~마 포함 사업자</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--custody)"></span>수탁·관리</div><div class="mval">${cnt.c}</div><div class="msub">다·라 전문 사업자</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:var(--mixed)"></span>복합</div><div class="mval">${cnt.m}</div><div class="msub">부분 유형 사업자</div></div>
+    <div class="metric-card"><div class="mlabel"><span class="mdot" style="background:#10B981)"></span>원화마켓</div><div class="mval">${DATA.filter(d=>d.won).length}</div><div class="msub">실명계좌 보유</div></div>`;
+}
+
+/* ═══════════════════ ANALYTICS ═══════════════════ */
+let chartsBuilt = false;
+function buildAnalytics() {
+  if (chartsBuilt) return;
+  chartsBuilt = true;
+
+  const COLS = {
+    e:'#3B82F6', c:'#10B981', m:'#64748B',
+    b2b:'#10B981', b2c:'#3B82F6', mix:'#F59E0B',
+  };
+  const TYPE_COLORS = { '가':'#3B82F6','나':'#06B6D4','다':'#F59E0B','라':'#10B981','마':'#A78BFA' };
+  const TYPE_LABELS = { '가':'가. 매도·매수','나':'나. 교환','다':'다. 이전','라':'라. 보관·관리','마':'마. 중개·알선' };
+
+  /* Chart 1: 사업자 분류 */
+  const catCnt = { e:0, c:0, m:0 };
+  DATA.forEach(d => catCnt[d.cat]++);
+  const catLabels = ['거래소','수탁·관리','복합'];
+  const catColors = [COLS.e, COLS.c, COLS.m];
+  new Chart(document.getElementById('c-cat'), {
+    type:'doughnut',
+    data:{ labels:catLabels, datasets:[{ data:[catCnt.e,catCnt.c,catCnt.m], backgroundColor:catColors, borderColor:'#0B0D11', borderWidth:2, hoverOffset:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>`${ctx.label}: ${ctx.raw}개사 (${Math.round(ctx.raw/TOTAL*100)}%)` } } } }
+  });
+  document.getElementById('leg-cat').innerHTML = catLabels.map((l,i) =>
+    `<span class="cli"><span class="cli-sq" style="background:${catColors[i]}"></span>${l} ${[catCnt.e,catCnt.c,catCnt.m][i]}개</span>`
+  ).join('');
+
+  /* Chart 2: 신고유형 건수 (가~마) */
+  const typeCnt = { '가':0,'나':0,'다':0,'라':0,'마':0 };
+  DATA.forEach(d => d.types.forEach(t => typeCnt[t] = (typeCnt[t]||0)+1));
+  const typeKeys = Object.keys(typeCnt);
+  const typeColors = typeKeys.map(k => TYPE_COLORS[k]);
+  new Chart(document.getElementById('c-types'), {
+    type:'doughnut',
+    data:{ labels:typeKeys.map(k=>TYPE_LABELS[k]), datasets:[{ data:typeKeys.map(k=>typeCnt[k]), backgroundColor:typeColors, borderColor:'#0B0D11', borderWidth:2, hoverOffset:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>`${ctx.label}: ${ctx.raw}개사` } } } }
+  });
+  document.getElementById('leg-types').innerHTML = typeKeys.map((k,i) =>
+    `<span class="cli"><span class="cli-sq" style="background:${typeColors[i]}"></span>${TYPE_LABELS[k]} ${typeCnt[k]}개</span>`
+  ).join('');
+
+  /* Chart 3: B2B/B2C/mix */
+  const modCnt = { b2b:0, b2c:0, mix:0 };
+  DATA.forEach(d => modCnt[d.b2]++);
+  const modLabels = ['B2B (기업·기관)','B2C (개인)','혼합'];
+  const modColors = [COLS.b2b, COLS.b2c, COLS.mix];
+  new Chart(document.getElementById('c-model'), {
+    type:'doughnut',
+    data:{ labels:modLabels, datasets:[{ data:[modCnt.b2b,modCnt.b2c,modCnt.mix], backgroundColor:modColors, borderColor:'#0B0D11', borderWidth:2, hoverOffset:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>`${ctx.label}: ${ctx.raw}개사` } } } }
+  });
+  document.getElementById('leg-model').innerHTML = modLabels.map((l,i) =>
+    `<span class="cli"><span class="cli-sq" style="background:${modColors[i]}"></span>${l} ${[modCnt.b2b,modCnt.b2c,modCnt.mix][i]}개</span>`
+  ).join('');
+
+  /* Split bars */
+  function makeBar(barId, itemsId, items) {
+    const total = items.reduce((s,i) => s+i.count, 0);
+    document.getElementById(barId).innerHTML = items.map(i =>
+      `<div class="mb-seg" style="width:${Math.round(i.count/total*100)}%;background:${i.color}"></div>`
+    ).join('');
+    document.getElementById(itemsId).innerHTML = items.map(i =>
+      `<div class="model-row"><span class="model-dot" style="background:${i.color}"></span><span class="model-name">${i.label}</span><span class="model-count">${i.count}개</span><span class="model-pct">${Math.round(i.count/total*100)}%</span></div>`
+    ).join('');
+  }
+  makeBar('modelBar','modelItems',[
+    {label:'B2B (기업·기관 전용)', count:modCnt.b2b, color:COLS.b2b},
+    {label:'B2C (개인 이용자)',    count:modCnt.b2c, color:COLS.b2c},
+    {label:'혼합 (B2B+B2C)',      count:modCnt.mix, color:COLS.mix},
+  ]);
+  const wonY = DATA.filter(d=>d.won).length;
+  makeBar('wonBar','wonItems',[
+    {label:'원화마켓 보유 (실명계좌)', count:wonY, color:'#3B82F6'},
+    {label:'코인마켓 전용',            count:TOTAL-wonY, color:'#1F2937'},
+  ]);
+  const bankY = DATA.filter(d=>d.bank).length;
+  makeBar('bankBar','bankItems',[
+    {label:'은행 연계 있음', count:bankY,      color:'#10B981'},
+    {label:'독립 운영',      count:TOTAL-bankY, color:'#1F2937'},
+  ]);
+
+  /* Cohort by year */
+  const byYear = {};
+  DATA.forEach(d => {
+    const y = d.regDate.slice(0,4);
+    (byYear[y] = byYear[y]||[]).push(d);
+  });
+  const yColors = {'2021':'#3B82F6','2022':'#10B981','2023':'#F59E0B','2024':'#A78BFA','2025':'#F87171'};
+  document.getElementById('cohortGrid').innerHTML = Object.keys(byYear).sort().map(y => `
+    <div class="cohort-bucket">
+      <div class="cb-label">${y}년 신고수리</div>
+      <div class="cb-count" style="color:${yColors[y]||'#fff'}">${byYear[y].length}개사</div>
+      <div class="cb-names">${byYear[y].map(d=>d.name).join(', ')}</div>
+    </div>`).join('');
+
+  document.getElementById('tlList').innerHTML = Object.keys(byYear).sort().map(y => `
+    <div class="tl-year-group">
+      <div class="tl-year">${y}</div>
+      <div class="tl-items">
+        ${byYear[y].sort((a,b)=>a.regDate.localeCompare(b.regDate)).map(d => {
+          const ci = CAT_INFO[d.cat];
+          return `<div class="tl-item">
+            <span class="tl-date">${d.regDate.slice(5).replace('-','.')}</span>
+            <span class="tl-name">${d.name}</span>
+            <span class="type-badge ${ci.cls}" style="font-size:10px;padding:2px 6px"><span class="bd"></span>${ci.label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  /* Tenure table */
+  const refDate = new Date('2025-01-23');
+  const firstDate = new Date('2021-10-06');
+  const maxDays = (refDate - firstDate) / 86400000;
+  const sorted = [...DATA].sort((a,b) => a.regDate.localeCompare(b.regDate));
+  const catBarColor = { e:'#3B82F6', c:'#10B981', m:'#64748B' };
+  document.getElementById('tenureBody').innerHTML = sorted.map(d => {
+    const days = (refDate - new Date(d.regDate)) / 86400000;
+    const yrs = (days/365).toFixed(1);
+    const pct = Math.round(days/maxDays*100);
+    return `<tr>
+      <td><span class="tenure-name">${d.name}</span><br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
+      <td>
+        <div class="tenure-bar-wrap">
+          <div class="tenure-bar" style="width:${pct}%;background:${catBarColor[d.cat]}"></div>
+          <span style="font-size:11px;color:var(--tm)">${d.regDate}</span>
+        </div>
+      </td>
+      <td style="text-align:right"><span class="tenure-yrs">${yrs}년</span></td>
+    </tr>`;
+  }).join('');
+
+  /* Tag cloud */
+  const tagFreq = {};
+  DATA.forEach(d => (d.tags||[]).forEach(t => tagFreq[t]=(tagFreq[t]||0)+1));
+  const sorted2 = Object.entries(tagFreq).sort((a,b) => b[1]-a[1]);
+  const max2 = sorted2[0][1];
+  document.getElementById('tagCloud').innerHTML = sorted2.map(([t,n]) => {
+    const sz = 10 + Math.round((n/max2)*6);
+    return `<span class="tc-tag" style="font-size:${sz}px">${t}<span class="tc-n">${n}</span></span>`;
+  }).join('');
+}
+
+/* ═══ INIT ═══ */
+renderMetrics();
+renderList();
+
+/* ════════════════════════════════════════════════════
+   관계도 페이지 — D3 Force-Directed Graph
+════════════════════════════════════════════════════ */
+let graphBuilt = false;
+
+const GNODES = [
+  { id:'KB국민은행',   group:'bank', label:'KB국민은행',   sub:'시중은행' },
+  { id:'신한은행',     group:'bank', label:'신한은행',     sub:'시중은행' },
+  { id:'NH농협은행',   group:'bank', label:'NH농협은행',   sub:'시중은행' },
+  { id:'우리은행',     group:'bank', label:'우리은행',     sub:'시중은행' },
+  { id:'iM뱅크',      group:'bank', label:'iM뱅크',      sub:'지방은행' },
+  { id:'전북은행',     group:'bank', label:'전북은행',     sub:'지방은행' },
+  { id:'카카오뱅크',   group:'bank', label:'카카오뱅크',   sub:'인터넷은행' },
+  { id:'하나금융',     group:'sec',  label:'하나금융',     sub:'금융지주' },
+  { id:'한화투자증권', group:'sec',  label:'한화투자증권', sub:'증권사' },
+  { id:'삼성증권',     group:'sec',  label:'삼성증권',     sub:'증권사' },
+  { id:'한국투자증권', group:'sec',  label:'한국투자증권', sub:'증권사' },
+  { id:'미래에셋',     group:'sec',  label:'미래에셋',     sub:'금융그룹' },
+  { id:'NH투자증권',   group:'sec',  label:'NH투자증권',   sub:'증권사' },
+  { id:'NXC(넥슨)',    group:'corp', label:'NXC(넥슨)',    sub:'게임지주' },
+  { id:'SK플래닛',     group:'corp', label:'SK플래닛',     sub:'IT/커머스' },
+  { id:'해시드',       group:'corp', label:'해시드',       sub:'블록체인 VC' },
+  { id:'해치랩스',     group:'corp', label:'해치랩스',     sub:'블록체인 개발' },
+  { id:'카카오',       group:'corp', label:'카카오',       sub:'IT 플랫폼' },
+  { id:'네이버',       group:'corp', label:'네이버',       sub:'IT 플랫폼' },
+  { id:'OKX벤처스',   group:'corp', label:'OKX벤처스',   sub:'글로벌 거래소' },
+  { id:'BitGo',        group:'corp', label:'BitGo',        sub:'글로벌 수탁사' },
+  { id:'컴투스홀딩스', group:'corp', label:'컴투스홀딩스', sub:'게임사' },
+  { id:'블로코',       group:'corp', label:'블로코',       sub:'블록체인 개발' },
+  { id:'위허브',       group:'corp', label:'위허브',       sub:'핀테크' },
+  { id:'업비트',       group:'vasp_e', label:'업비트',     sub:'거래소' },
+  { id:'빗썸',         group:'vasp_e', label:'빗썸',       sub:'거래소' },
+  { id:'코인원',       group:'vasp_e', label:'코인원',     sub:'거래소' },
+  { id:'코빗',         group:'vasp_e', label:'코빗',       sub:'거래소' },
+  { id:'고팍스',       group:'vasp_e', label:'고팍스',     sub:'거래소' },
+  { id:'플라이빗',     group:'vasp_e', label:'플라이빗',   sub:'거래소' },
+  { id:'KODA',         group:'vasp_c', label:'KODA',       sub:'수탁·관리' },
+  { id:'KDAC',         group:'vasp_c', label:'KDAC',       sub:'수탁·관리' },
+  { id:'인피닛블록',   group:'vasp_c', label:'인피닛블록', sub:'수탁·관리' },
+  { id:'비댁스',       group:'vasp_c', label:'비댁스',     sub:'수탁·관리' },
+  { id:'디에스알브이랩스', group:'vasp_c', label:'DSRV랩스', sub:'수탁·관리' },
+];
+
+const GLINKS = [
+  { s:'KB국민은행',   t:'KODA',      type:'지분투자', detail:'합작 설립 · 지분 14.91%' },
+  { s:'KB국민은행',   t:'업비트',    type:'실명계좌', detail:'실명확인 입출금 계좌 제휴' },
+  { s:'신한은행',     t:'KDAC',      type:'지분투자', detail:'지분 5% 보유 · 설립 참여' },
+  { s:'신한은행',     t:'코빗',      type:'실명계좌', detail:'실명확인 입출금 계좌 제휴' },
+  { s:'NH농협은행',   t:'KDAC',      type:'지분투자', detail:'카르도 합병 후 지분 7%' },
+  { s:'NH농협은행',   t:'빗썸',      type:'실명계좌', detail:'실명확인 입출금 계좌 제휴' },
+  { s:'NH투자증권',   t:'KDAC',      type:'투자',     detail:'NH디지털얼라이언스 펀드 참여' },
+  { s:'우리은행',     t:'비댁스',    type:'지분투자', detail:'2024년 지분투자 완료' },
+  { s:'iM뱅크',      t:'인피닛블록', type:'지분투자', detail:'2022년 지분투자' },
+  { s:'전북은행',     t:'고팍스',    type:'실명계좌', detail:'실명확인 입출금 계좌 제휴' },
+  { s:'카카오뱅크',   t:'코인원',    type:'실명계좌', detail:'실명확인 입출금 계좌 제휴' },
+  { s:'하나금융',     t:'업비트',    type:'지분투자', detail:'두나무 지분 6.55% · 1조원 투자' },
+  { s:'하나금융',     t:'디에스알브이랩스', type:'파트너십', detail:'BitGo 합작 수탁사업 검토' },
+  { s:'BitGo',        t:'디에스알브이랩스', type:'파트너십', detail:'글로벌 수탁 기술 제휴' },
+  { s:'한화투자증권', t:'업비트',    type:'지분투자', detail:'두나무 지분 9.84% · 3대 주주' },
+  { s:'삼성증권',     t:'업비트',    type:'지분투자', detail:'삼성SDS·삼성카드 합산 두나무 지분 4%' },
+  { s:'삼성증권',     t:'빗썸',      type:'파트너십', detail:'IPO 주관사 (코스닥 상장 추진)' },
+  { s:'한국투자증권', t:'코인원',    type:'지분투자', detail:'지분 20% 취득 계약 (2026.05)' },
+  { s:'미래에셋',     t:'코빗',      type:'지분투자', detail:'경영권 인수 MOU 체결 (2026)' },
+  { s:'NXC(넥슨)',    t:'코빗',      type:'지분투자', detail:'최대주주 45.56% → 매각 진행 중' },
+  { s:'SK플래닛',     t:'코빗',      type:'지분투자', detail:'2대 주주 31.55%' },
+  { s:'해시드',       t:'KODA',      type:'지분투자', detail:'합작 설립 파트너' },
+  { s:'해치랩스',     t:'KODA',      type:'지분투자', detail:'기술 개발 파트너 · 합작 설립' },
+  { s:'카카오',       t:'업비트',    type:'지분투자', detail:'카카오인베스트먼트 지분 (매각 축소 중)' },
+  { s:'네이버',       t:'업비트',    type:'파트너십', detail:'포괄적 주식교환 · 스테이블코인 협력' },
+  { s:'OKX벤처스',   t:'코인원',    type:'지분투자', detail:'지분 20% 취득 계약 (2026.05)' },
+  { s:'컴투스홀딩스', t:'코인원',    type:'지분투자', detail:'기존 2대 주주 (지분 매각 예정)' },
+  { s:'블로코',       t:'KDAC',      type:'지분투자', detail:'설립 참여·기술 파트너' },
+  { s:'코빗',         t:'KDAC',      type:'설립관계', detail:'코빗이 KDAC 설립 주도' },
+  { s:'KODA',         t:'업비트',    type:'서비스연계', detail:'기관 수탁고객 매매 연동' },
+  { s:'KDAC',         t:'코빗',      type:'서비스연계', detail:'수탁 고객 원화 거래 연계' },
+  { s:'위허브',       t:'플라이빗',  type:'지분투자',  detail:'지분 40% 인수 계약 · 최대주주 취득 예정 (2026.05.28)' },
+];
+
+const GC = {
+  bank:'#3B82F6', sec:'#A78BFA', corp:'#F59E0B',
+  vasp_e:'#10B981', vasp_c:'#F87171'
+};
+const LC = {
+  '지분투자':'#10B981', '실명계좌':'#3B82F6',
+  '파트너십':'#F59E0B', '설립관계':'#F87171',
+  '투자':'#A78BFA',     '서비스연계':'#64748B'
+};
+
+function buildGraph() {
+  if (graphBuilt) return;
+  graphBuilt = true;
+
+  const statEl = document.getElementById('graph-stats');
+  if (statEl) {
+    const bankN = GNODES.filter(n=>n.group==='bank').length;
+    const secN  = GNODES.filter(n=>n.group==='sec').length;
+    const vaspN = GNODES.filter(n=>n.group==='vasp_e'||n.group==='vasp_c').length;
+    statEl.innerHTML = `
+      <div class="gstat"><div class="gsv">${GNODES.length}</div><div class="gsl">전체 노드</div></div>
+      <div class="gstat"><div class="gsv">${GLINKS.length}</div><div class="gsl">관계 엣지</div></div>
+      <div class="gstat"><div class="gsv">${bankN+secN}</div><div class="gsl">금융기관</div></div>
+      <div class="gstat"><div class="gsv">${vaspN}</div><div class="gsl">VASP</div></div>`;
+  }
+
+  const filterWrap = document.getElementById('graph-filters');
+  if (filterWrap) {
+    const grpDefs = [
+      {id:'bank',   label:'은행',         col:GC.bank},
+      {id:'sec',    label:'증권·금융투자', col:GC.sec},
+      {id:'corp',   label:'기업·VC',      col:GC.corp},
+      {id:'vasp_e', label:'VASP 거래소',  col:GC.vasp_e},
+      {id:'vasp_c', label:'VASP 수탁사',  col:GC.vasp_c},
+    ];
+    filterWrap.innerHTML =
+      `<div style="font-size:10px;color:#4E5260;font-family:'Space Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">노드 유형</div>` +
+      grpDefs.map(g=>`<label style="display:flex;align-items:center;gap:7px;cursor:pointer;margin-bottom:7px;font-size:12px;color:#8A8E9A">
+        <input type="checkbox" checked data-gfilter="${g.id}" style="accent-color:${g.col};width:13px;height:13px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${g.col};flex-shrink:0"></span>${g.label}</label>`).join('') +
+      `<div style="font-size:10px;color:#4E5260;font-family:'Space Grotesk',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin:12px 0 8px">관계 유형</div>` +
+      Object.entries(LC).map(([k,v])=>`<label style="display:flex;align-items:center;gap:7px;cursor:pointer;margin-bottom:7px;font-size:12px;color:#8A8E9A">
+        <input type="checkbox" checked data-lfilter="${k}" style="accent-color:${v};width:13px;height:13px">
+        <span style="width:12px;height:3px;background:${v};flex-shrink:0;border-radius:2px"></span>${k}</label>`).join('');
+  }
+
+  /* requestAnimationFrame으로 DOM 레이아웃 완료 후 실행 */
+  requestAnimationFrame(function() {
+    function tryInit() {
+      if (typeof d3 === 'undefined') { setTimeout(tryInit, 100); return; }
+      initGraph();
+    }
+    tryInit();
+  });
+}
+
+function initGraph() {
+  const canvasWrap = document.getElementById('graph-canvas-wrap');
+  if (!canvasWrap) return;
+  canvasWrap.innerHTML = '';
+
+  const W = canvasWrap.offsetWidth || canvasWrap.parentElement.offsetWidth || 900;
+  const H = Math.max(640, window.innerHeight - 170);
+  canvasWrap.style.height = H + 'px';
+
+  const nodes = GNODES.map(d => ({...d}));
+  /* D3 forceLink은 source/target 필드를 요구 — s/t 를 매핑 */
+  const links = GLINKS.map(d => ({...d, source: d.s, target: d.t}));
+
+  const svg = d3.select(canvasWrap).append('svg').attr('width', W).attr('height', H);
+
+  const defs = svg.append('defs');
+  Object.entries(LC).forEach(([k, col]) => {
+    const mid = k.replace(/\W/g,'');
+    defs.append('marker')
+      .attr('id', 'arr-' + mid)
+      .attr('viewBox', '0 -4 8 8').attr('refX', 20).attr('refY', 0)
+      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
+      .append('path').attr('d', 'M0,-4L8,0L0,4').attr('fill', col).attr('opacity', 0.7);
+  });
+
+  const container = svg.append('g');
+  svg.call(d3.zoom().scaleExtent([0.25, 3]).on('zoom', e => container.attr('transform', e.transform)));
+
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>{
+      if (d.type==='실명계좌') return 120;
+      if (d.type==='지분투자') return 140;
+      return 170;
+    }).strength(0.5))
+    .force('charge', d3.forceManyBody().strength(-500))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collide', d3.forceCollide(56))
+    .force('x', d3.forceX(W/2).strength(0.05))
+    .force('y', d3.forceY(H/2).strength(0.05));
+
+  const linkSel = container.append('g').selectAll('line')
+    .data(links).join('line')
+    .attr('stroke', d=>LC[d.type]||'#555')
+    .attr('stroke-width', d=>d.type==='지분투자'?2.2:1.3)
+    .attr('stroke-opacity', 0.55)
+    .attr('stroke-dasharray', d=>(d.type==='파트너십'||d.type==='서비스연계')?'5,3':null)
+    .attr('marker-end', d=>`url(#arr-${d.type.replace(/\W/g,'')})`);
+
+  const nodeSel = container.append('g').selectAll('g')
+    .data(nodes).join('g')
+    .attr('cursor','pointer')
+    .call(d3.drag()
+      .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y; })
+      .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
+
+  const rOf = d => (['vasp_e','vasp_c'].includes(d.group) ? 28 : 22);
+
+  nodeSel.append('circle')
+    .attr('r', rOf)
+    .attr('fill', d=>GC[d.group]+'1A')
+    .attr('stroke', d=>GC[d.group])
+    .attr('stroke-width', d=>['vasp_e','vasp_c'].includes(d.group)?2:1.5);
+
+  nodeSel.append('text')
+    .attr('text-anchor','middle').attr('dy','0.35em')
+    .attr('font-size', d=>d.label.length>5?9:10)
+    .attr('font-family','Noto Sans KR, sans-serif').attr('font-weight','500')
+    .attr('fill', d=>GC[d.group]).attr('pointer-events','none')
+    .text(d=>d.label);
+
+  nodeSel.append('text')
+    .attr('text-anchor','middle').attr('dy', d=>rOf(d)+11)
+    .attr('font-size',8).attr('font-family','Space Grotesk, sans-serif')
+    .attr('fill','#4E5260').attr('pointer-events','none')
+    .text(d=>d.sub);
+
+  const tip = d3.select('#graph-tooltip');
+
+  nodeSel
+    .on('mouseover', function(e,d) {
+      const conns = GLINKS.filter(l=>l.s===d.id||l.t===d.id);
+      const rows = conns.map(l=>`
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+          <span style="width:7px;height:7px;border-radius:50%;background:${LC[l.type]||'#888'};flex-shrink:0"></span>
+          <span style="color:#4E5260;font-size:11px;min-width:50px">${l.type}</span>
+          <span style="color:#F0EEE8;font-size:11px">${l.s===d.id?'→ '+l.t:'← '+l.s}</span>
+        </div>`).join('');
+      tip.style('display','block').html(`
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px;color:${GC[d.group]}">${d.label}</div>
+        <div style="font-size:11px;color:#4E5260;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07)">${d.sub}</div>
+        ${rows}`);
+      d3.select(this).select('circle').attr('stroke-width',['vasp_e','vasp_c'].includes(d.group)?3.5:3);
+    })
+    .on('mousemove', e=>{
+      const tipW=260;
+      tip.style('left',(e.clientX+tipW>window.innerWidth?e.clientX-tipW-16:e.clientX+14)+'px')
+         .style('top',Math.max(10,e.clientY-20)+'px');
+    })
+    .on('mouseout', function(e,d){
+      tip.style('display','none');
+      d3.select(this).select('circle').attr('stroke-width',['vasp_e','vasp_c'].includes(d.group)?2:1.5);
+    });
+
+  linkSel
+    .on('mouseover', function(e,d){
+      tip.style('display','block').html(`
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:${LC[d.type]||'#aaa'}">${d.type}</div>
+        <div style="font-size:12px;color:#F0EEE8">${d.s} → ${d.t}</div>
+        <div style="font-size:11px;color:#8A8E9A;margin-top:4px">${d.detail}</div>`);
+      d3.select(this).attr('stroke-opacity',1).attr('stroke-width',d.type==='지분투자'?3.5:2.5);
+    })
+    .on('mousemove', e=>{
+      tip.style('left',e.clientX+14+'px').style('top',Math.max(10,e.clientY-20)+'px');
+    })
+    .on('mouseout', function(e,d){
+      tip.style('display','none');
+      d3.select(this).attr('stroke-opacity',0.55).attr('stroke-width',d.type==='지분투자'?2.2:1.3);
+    });
+
+  sim.on('tick', ()=>{
+    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+            .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+
+  document.querySelectorAll('[data-gfilter]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const active=new Set([...document.querySelectorAll('[data-gfilter]:checked')].map(c=>c.dataset.gfilter));
+      nodeSel.style('display',d=>active.has(d.group)?null:'none');
+      linkSel.style('display',d=>active.has(d.source.group)&&active.has(d.target.group)?null:'none');
+    });
+  });
+  document.querySelectorAll('[data-lfilter]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const active=new Set([...document.querySelectorAll('[data-lfilter]:checked')].map(c=>c.dataset.lfilter));
+      linkSel.style('display',d=>active.has(d.type)?null:'none');
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   기업 상세 패널
+════════════════════════════════════════════════════ */
+function openDetail(name) {
+  const d = DATA.find(c => c.name === name);
+  if (!d) return;
+
+  const ci = CAT_INFO[d.cat];
+  const catColor = {e:'#3B82F6', c:'#10B981', m:'#64748B'}[d.cat];
+  const refDate = new Date('2025-01-23');
+  const days = (refDate - new Date(d.regDate)) / 86400000;
+  const yrs = (days / 365).toFixed(1);
+
+  document.getElementById('dp-badge-wrap').innerHTML =
+    `<span class="type-badge ${ci.cls}"><span class="bd"></span>${ci.label}</span>`;
+  document.getElementById('dp-name').textContent = d.name;
+  document.getElementById('dp-corp').textContent = d.corp;
+  document.getElementById('dp-service').textContent = d.service;
+
+  /* 관계 링크 */
+  const relLinks = GLINKS.filter(l => l.s === d.name || l.t === d.name);
+  const relHtml = relLinks.length ? `
+    <div class="dp-section">
+      <div class="dp-sec-title">금융 관계</div>
+      <div class="dp-rel">
+        ${relLinks.map(l => `<div class="dp-rel-item">
+          <span class="dp-rel-dot" style="background:${LC[l.type]||'#888'}"></span>
+          <span class="dp-rel-type">${l.type}</span>
+          <span class="dp-rel-name">${l.s === d.name ? l.t : l.s}</span>
+          <span class="dp-rel-detail">${l.detail}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const websiteHtml = d.website ? `
+    <div class="dp-section">
+      <div class="dp-sec-title">웹사이트</div>
+      <a href="${d.website}" class="dp-link" target="_blank" rel="noopener noreferrer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        ${d.website.replace('https://','').replace('http://','')}
+      </a>
+    </div>` : '';
+
+  const renewalHtml = d.renewal ?
+    `<div class="dp-kv-row"><div class="dp-key">갱신수리</div><div class="dp-val hi">${d.renewal.replace(/-/g,'.')}</div></div>` : '';
+
+  const b2Label = {b2b:'B2B (기업·기관 전용)', b2c:'B2C (개인 이용자)', mix:'혼합 (B2B+B2C)'}[d.b2];
+
+  document.getElementById('dp-content').innerHTML = `
+    <div class="dp-section">
+      <div class="dp-metrics">
+        <div class="dp-metric"><div class="dmv" style="color:${catColor}">${typeRange(d.types)}</div><div class="dml">신고 유형</div></div>
+        <div class="dp-metric"><div class="dmv">${d.regDate.replace(/-/g,'.')}</div><div class="dml">신고수리일</div></div>
+        <div class="dp-metric"><div class="dmv">${yrs}년</div><div class="dml">보유 기간</div></div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-sec-title">서비스 개요</div>
+      <p class="dp-desc">${d.desc}</p>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-sec-title">특장점</div>
+      <div class="dp-feat-box"><div class="dp-feat-text">${d.feat}</div></div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-sec-title">기본 정보</div>
+      <div class="dp-kv">
+        ${d.ceo ? `<div class="dp-kv-row"><div class="dp-key">대표자</div><div class="dp-val hi">${d.ceo}</div></div>` : ''}
+        <div class="dp-kv-row"><div class="dp-key">법인명</div><div class="dp-val">${d.corp}</div></div>
+        ${d.regNo ? `<div class="dp-kv-row"><div class="dp-key">등록번호</div><div class="dp-val">${d.regNo}</div></div>` : ''}
+        ${d.address ? `<div class="dp-kv-row"><div class="dp-key">소재지</div><div class="dp-val">${d.address}</div></div>` : ''}
+        ${d.applyDate ? `<div class="dp-kv-row"><div class="dp-key">신고접수</div><div class="dp-val">${d.applyDate.replace(/-/g,'.')}</div></div>` : ''}
+        <div class="dp-kv-row"><div class="dp-key">수리일</div><div class="dp-val">${d.regDate.replace(/-/g,'.')}</div></div>
+        ${renewalHtml}
+        <div class="dp-kv-row"><div class="dp-key">고객 유형</div><div class="dp-val">${b2Label}</div></div>
+        <div class="dp-kv-row"><div class="dp-key">원화마켓</div><div class="dp-val">${d.won ? '✓ 보유 (실명계좌)' : '없음 (코인마켓 전용)'}</div></div>
+        <div class="dp-kv-row"><div class="dp-key">은행 연계</div><div class="dp-val">${d.bank ? '✓ 있음' : '없음'}</div></div>
+      </div>
+    </div>
+
+    ${websiteHtml}
+    ${relHtml}
+
+    <div class="dp-section">
+      <div class="dp-sec-title">태그</div>
+      <div class="dp-tags">${(d.tags||[]).map(t=>`<span class="dp-tag">${t}</span>`).join('')}</div>
+    </div>
+  `;
+
+  document.getElementById('detail-backdrop').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('detail-backdrop').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+/* ════════════════════════════════════════════════════
+   타임라인 페이지 — 한국·미국 블록체인 주요 사건 + VASP 신고수리일
+════════════════════════════════════════════════════ */
+const KR_EVENTS = [
+  { date:'2021-03-25', label:'특금법 개정안 시행', detail:'특정금융정보법 개정안 시행 — 가상자산사업자 신고의무 법제화. 6개월 유예기간 부여.', col:'#3B82F6', side:'kr' },
+  { date:'2021-09-25', label:'VASP 신고제 시행', detail:'FIU 가상자산사업자 신고·수리 제도 본격 시행. 유예기간 만료로 미신고 사업자 영업 금지.', col:'#60A5FA', side:'kr' },
+  { date:'2022-05-09', label:'테라/루나 폭락', detail:'테라(UST) 디페깅 → 루나 99% 이상 폭락. 수십조원 국내 투자자 피해. 권도형 대표 해외 도피.', col:'#EF4444', side:'kr' },
+  { date:'2023-06-30', label:'이용자보호법 의결', detail:'가상자산이용자보호법 국회 본회의 통과. 불공정거래 금지·자산 안전관리 의무 법제화. 1년 유예.', col:'#3B82F6', side:'kr' },
+  { date:'2024-07-19', label:'이용자보호법 시행', detail:'가상자산이용자보호법 1단계 본격 시행. 거래지원 적정성 심사·이상거래 감시 의무화.', col:'#10B981', side:'kr' },
+  { date:'2025-01-23', label:'FIU 공시 기준일', detail:'금융정보분석원 가상자산사업자 신고 정보공개 기준일. 42개사 신고수리 현황 공시.', col:'#A78BFA', side:'kr' },
+];
+
+const US_EVENTS = [
+  { date:'2021-04-14', label:'Coinbase NASDAQ 상장', detail:'코인베이스(COIN) 나스닥 직상장. 시가총액 $860억 돌파. 블록체인 산업 주류화 신호탄.', col:'#F59E0B', side:'us' },
+  { date:'2021-11-10', label:'BTC ATH $69,000', detail:'비트코인 역대 최고가 $69,044 기록 (당시). 글로벌 암호화폐 시총 $3조 돌파.', col:'#10B981', side:'us' },
+  { date:'2022-11-11', label:'FTX 파산 신청', detail:'FTX 그룹 챕터11 파산 신청. SBF 체포 기소. $80억 고객자산 유용. 글로벌 시장 급락.', col:'#EF4444', side:'us' },
+  { date:'2023-06-06', label:'SEC vs Binance·Coinbase', detail:'SEC, 바이낸스·코인베이스 동시 소송 제기 — 증권법 위반. BNB·SOL 등 증권 판단 논란.', col:'#EF4444', side:'us' },
+  { date:'2024-01-10', label:'BTC 현물 ETF 승인', detail:'SEC, BlackRock·Fidelity 등 비트코인 현물 ETF 11개 동시 승인. 기관 자금 대거 유입.', col:'#10B981', side:'us' },
+  { date:'2024-05-23', label:'ETH 현물 ETF 승인', detail:'SEC 이더리움 현물 ETF 승인. 거래 개시는 7월 23일. 스테이킹 기능은 미포함.', col:'#10B981', side:'us' },
+  { date:'2024-11-05', label:'Trump 대통령 당선', detail:'친암호화폐 공약 트럼프 당선. BTC $100K 돌파. "미국을 암호화폐 수도로" 선언.', col:'#F59E0B', side:'us' },
+  { date:'2025-01-20', label:'Trump 취임·행정명령', detail:'암호화폐 워킹그룹 설치 행정명령 서명. SEC 친암호화폐 전환, XRP·SOL 소송 취하.', col:'#60A5FA', side:'us' },
+  { date:'2025-03-07', label:'BTC 전략비축 행정명령', detail:'Strategic Bitcoin Reserve 행정명령 서명. 정부 보유 BTC(약 20만개)를 전략자산으로 지정.', col:'#10B981', side:'us' },
+];
+
+let timelineBuilt = false;
+function buildTimeline() {
+  if (timelineBuilt) return;
+  if (typeof d3 === 'undefined') { setTimeout(buildTimeline, 100); return; }
+  const container = document.getElementById('tl-canvas');
+  if (!container || !container.offsetParent) return;
+  timelineBuilt = true;
+
+  const scrollWrap = container.parentElement;
+  const viewH = scrollWrap.offsetHeight || 480;
+
+  const W = 2300;
+  const H = Math.max(viewH, 460);
+  const PAD_L = 70, PAD_R = 70;
+  const AXIS_Y = Math.round(H * 0.46);
+
+  const tDomain = [new Date('2021-01-01'), new Date('2027-01-01')];
+  const tScale = d3.scaleTime().domain(tDomain).range([PAD_L, W - PAD_R]);
+
+  const svg = d3.select(container).append('svg').attr('width', W).attr('height', H);
+
+  /* ── year bands & tick marks ── */
+  for (let y = 2021; y <= 2026; y++) {
+    const x1 = tScale(new Date(y + '-01-01'));
+    const x2 = tScale(new Date((y + 1) + '-01-01'));
+    if (y % 2 === 0) svg.append('rect').attr('x', x1).attr('y', 0).attr('width', x2 - x1).attr('height', H).attr('fill', 'rgba(255,255,255,0.013)');
+    svg.append('text').attr('x', (x1 + x2) / 2).attr('y', H - 10).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-family', "Space Grotesk, sans-serif").attr('fill', '#4E5260').text(y === 2026 ? '2026 (현재)' : y + '년');
+    for (let m = 0; m < 12; m++) {
+      const mx = tScale(new Date(y, m, 1));
+      svg.append('line').attr('x1', mx).attr('x2', mx).attr('y1', AXIS_Y - 3).attr('y2', AXIS_Y + 3).attr('stroke', 'rgba(255,255,255,0.07)').attr('stroke-width', 1);
+    }
+    svg.append('line').attr('x1', x1).attr('x2', x1).attr('y1', AXIS_Y - 8).attr('y2', AXIS_Y + 8).attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 1);
+  }
+
+  /* ── axis line ── */
+  svg.append('line').attr('x1', PAD_L).attr('x2', W - PAD_R).attr('y1', AXIS_Y).attr('y2', AXIS_Y).attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 1.5);
+
+  /* ── lane labels ── */
+  const labelStyle = (x, y, text, col) => svg.append('text').attr('x', x).attr('y', y).attr('font-size', 10).attr('font-weight', '600').attr('font-family', "Space Grotesk, sans-serif").attr('fill', col).text(text);
+  labelStyle(PAD_L - 10, AXIS_Y - 100, '한국', '#60A5FA').attr('text-anchor', 'end');
+  labelStyle(PAD_L - 10, AXIS_Y + 80, '미국', '#F59E0B').attr('text-anchor', 'end');
+  labelStyle(PAD_L - 10, AXIS_Y + 14, 'VASP', '#A78BFA').attr('text-anchor', 'end').attr('font-size', 9);
+
+  /* ── today line ── */
+  const todayX = tScale(new Date('2026-06-19'));
+  svg.append('line').attr('x1', todayX).attr('x2', todayX).attr('y1', 0).attr('y2', H - 20).attr('stroke', 'rgba(167,139,250,0.35)').attr('stroke-width', 1).attr('stroke-dasharray', '5,4');
+  svg.append('text').attr('x', todayX + 4).attr('y', 14).attr('font-size', 9).attr('font-family', "Space Grotesk, sans-serif").attr('fill', '#A78BFA').text('오늘');
+
+  const tip = d3.select('#tl-tooltip');
+  const showTip = (e, html) => {
+    tip.style('display', 'block').html(html);
+    moveTip(e);
+  };
+  const moveTip = e => {
+    const tw = 250;
+    tip.style('left', (e.clientX + tw > window.innerWidth ? e.clientX - tw - 12 : e.clientX + 12) + 'px')
+       .style('top', Math.max(10, e.clientY - 30) + 'px');
+  };
+  const hideTip = () => tip.style('display', 'none');
+
+  /* ── lane assignment helper ── */
+  function pickLane(registry, x, nLanes, minGap) {
+    for (let i = 0; i < nLanes; i++) {
+      if (!registry[i] || x - registry[i] >= minGap) { registry[i] = x; return i; }
+    }
+    let best = 0;
+    for (let i = 1; i < nLanes; i++) if (registry[i] < registry[best]) best = i;
+    registry[best] = x;
+    return best;
+  }
+
+  /* ── draw event pill ── */
+  const PILL_W = 108, PILL_H = 21;
+  function drawEvent(ev, x, yBox, yConnEnd) {
+    const g = svg.append('g').attr('cursor', 'pointer');
+    svg.append('line').attr('x1', x).attr('x2', x).attr('y1', Math.min(yBox + PILL_H, yConnEnd)).attr('y2', Math.max(yBox, yConnEnd)).attr('stroke', ev.col).attr('stroke-width', 1).attr('stroke-opacity', 0.35).attr('stroke-dasharray', '3,3');
+    svg.append('circle').attr('cx', x).attr('cy', AXIS_Y).attr('r', 4).attr('fill', ev.col).attr('stroke', '#0B0D11').attr('stroke-width', 2);
+    g.append('rect').attr('x', x - PILL_W / 2).attr('y', yBox).attr('width', PILL_W).attr('height', PILL_H).attr('rx', 4).attr('fill', ev.col + '22').attr('stroke', ev.col).attr('stroke-width', 0.8).attr('stroke-opacity', 0.6);
+    g.append('text').attr('x', x).attr('y', yBox + PILL_H / 2 + 1).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('font-size', 9.5).attr('font-family', "Noto Sans KR, sans-serif").attr('fill', ev.col).attr('pointer-events', 'none').text(ev.label.length > 13 ? ev.label.slice(0, 13) + '…' : ev.label);
+    g.on('mouseover', e => showTip(e, `<div style="font-size:10px;color:${ev.col};font-weight:600;margin-bottom:3px">${ev.side === 'kr' ? '🇰🇷 한국' : '🇺🇸 미국'}</div><div style="font-size:13px;font-weight:600;color:#F0EEE8;margin-bottom:3px">${ev.label}</div><div style="font-size:11px;color:#8A8E9A;margin-bottom:7px">${ev.date}</div><div style="font-size:12px;color:#94A3B8;line-height:1.5">${ev.detail}</div>`))
+       .on('mousemove', moveTip).on('mouseout', hideTip);
+  }
+
+  /* ── KR events (above axis) ── */
+  const krLaneY = [AXIS_Y - 82, AXIS_Y - 138];
+  const krLaneReg = [];
+  KR_EVENTS.forEach(ev => {
+    const x = tScale(new Date(ev.date));
+    const lane = pickLane(krLaneReg, x, 2, PILL_W + 12);
+    drawEvent(ev, x, krLaneY[lane], AXIS_Y);
+  });
+
+  /* ── US events (below axis) ── */
+  const usLaneY = [AXIS_Y + 62, AXIS_Y + 110, AXIS_Y + 158];
+  const usLaneReg = [];
+  US_EVENTS.forEach(ev => {
+    const x = tScale(new Date(ev.date));
+    const lane = pickLane(usLaneReg, x, 3, PILL_W + 12);
+    drawEvent(ev, x, usLaneY[lane], AXIS_Y);
+  });
+
+  /* ── VASP registration markers ── */
+  const catCol = { e:'#3B82F6', c:'#10B981', m:'#64748B' };
+  const byDate = {};
+  DATA.forEach(d => { const k = d.regDate; (byDate[k] = byDate[k] || []).push(d); });
+
+  Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0])).forEach(([dt, items]) => {
+    const x = tScale(new Date(dt));
+    const cnt = items.length;
+    const catCount = { e:0, c:0, m:0 };
+    items.forEach(d => catCount[d.cat]++);
+    const mainCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0][0];
+    const col = catCol[mainCat];
+    const r = Math.min(4 + cnt * 1.8, 14);
+    const tickH = Math.min(8 + cnt * 3, 28);
+
+    svg.append('line').attr('x1', x).attr('x2', x).attr('y1', AXIS_Y).attr('y2', AXIS_Y + tickH).attr('stroke', col).attr('stroke-width', cnt > 2 ? 2 : 1.2).attr('stroke-opacity', 0.7);
+
+    const mg = svg.append('g').attr('cursor', 'pointer');
+    mg.append('circle').attr('cx', x).attr('cy', AXIS_Y + tickH + r).attr('r', r).attr('fill', col + '30').attr('stroke', col).attr('stroke-width', 1.2);
+    if (cnt > 1) mg.append('text').attr('x', x).attr('y', AXIS_Y + tickH + r).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('font-size', 8).attr('font-weight', '600').attr('font-family', "Space Grotesk, sans-serif").attr('fill', col).attr('pointer-events', 'none').text(cnt);
+
+    const nameRows = items.map(d => `<div style="display:flex;align-items:center;gap:5px;margin-top:3px"><span style="color:${catCol[d.cat]};font-size:10px">●</span><span style="font-size:12px;color:#F0EEE8">${d.name}</span><span style="font-size:10px;color:#4E5260">${d.corp}</span></div>`).join('');
+    mg.on('mouseover', e => showTip(e, `<div style="font-size:10px;color:#A78BFA;font-weight:600;margin-bottom:3px">신고수리 · ${cnt}개사</div><div style="font-size:11px;color:#8A8E9A;margin-bottom:6px">${dt}</div>${nameRows}`))
+      .on('mousemove', moveTip).on('mouseout', hideTip);
+  });
+}
+</script>
+</body>
+</html>
