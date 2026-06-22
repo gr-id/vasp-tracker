@@ -1204,6 +1204,8 @@ const TRAVEL_RULE = {
   '하이퍼리즘':'CODE', '델리오':'CODE',   '페이코인':'CODE',  '오하이월렛':'CODE',
 };
 
+const EXPIRED_NAMES = new Set(DATA.filter(d => d.expired).map(d => d.name));
+
 let graphBuilt = false;
 
 const GNODES = [
@@ -1243,6 +1245,10 @@ const GNODES = [
   { id:'비댁스',       group:'vasp_c', label:'비댁스',     sub:'수탁·관리' },
   { id:'디에스알브이랩스', group:'vasp_c', label:'DSRV랩스', sub:'수탁·관리' },
   { id:'크립토닷컴',   group:'vasp_e', label:'크립토닷컴', sub:'글로벌 거래소' },
+  { id:'지닥(GDAC)',   group:'vasp_e', label:'지닥',       sub:'거래소 (말소)' },
+  { id:'후오비코리아', group:'vasp_e', label:'후오비코리아', sub:'거래소 (말소)' },
+  { id:'카르도',       group:'vasp_c', label:'카르도',     sub:'수탁 (말소)' },
+  { id:'델리오',       group:'vasp_c', label:'델리오',     sub:'수탁 (말소)' },
   { id:'CODE',            group:'tr',     label:'CODE',     sub:'트래블룰 솔루션' },
   { id:'VerifyVASP',      group:'tr',     label:'VerifyVASP', sub:'트래블룰 솔루션' },
 ];
@@ -1287,6 +1293,9 @@ const GLINKS = [
   { s:'고팍스',   t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
   { s:'플라이빗', t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버' },
   { s:'크립토닷컴', t:'VerifyVASP', type:'트래블룰', detail:'글로벌 법인 — VerifyVASP 국제 네트워크 사용' },
+  { s:'지닥(GDAC)', t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버 (신고 말소)' },
+  { s:'후오비코리아', t:'CODE', type:'트래블룰', detail:'CODE 컨소시엄 멤버 (신고 말소)' },
+  { s:'카르도',  t:'KDAC', type:'설립관계', detail:'KDAC에 흡수합병 완료 (2023)' },
 ];
 
 const GC = {
@@ -1405,12 +1414,16 @@ function initGraph() {
       .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
 
   const rOf = d => (['vasp_e','vasp_c'].includes(d.group) ? 28 : d.group==='tr' ? 24 : 22);
+  const isExp = d => EXPIRED_NAMES.has(d.id);
+
+  nodeSel.attr('opacity', d => isExp(d) ? 0.35 : 1);
 
   nodeSel.append('circle')
     .attr('r', rOf)
-    .attr('fill', d=>GC[d.group]+'1A')
-    .attr('stroke', d=>GC[d.group])
-    .attr('stroke-width', d=>['vasp_e','vasp_c'].includes(d.group)?2:1.5);
+    .attr('fill', d => isExp(d) ? 'rgba(239,68,68,0.06)' : GC[d.group]+'1A')
+    .attr('stroke', d => isExp(d) ? '#EF4444' : GC[d.group])
+    .attr('stroke-width', d=>['vasp_e','vasp_c'].includes(d.group)?2:1.5)
+    .attr('stroke-dasharray', d => isExp(d) ? '5,3' : null);
 
   nodeSel.append('text')
     .attr('text-anchor','middle').attr('dy','0.35em')
@@ -1441,6 +1454,7 @@ function initGraph() {
         <div style="font-size:11px;color:#4E5260;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07)">${d.sub}</div>
         ${rows}`);
       d3.select(this).select('circle').attr('stroke-width',['vasp_e','vasp_c'].includes(d.group)?3.5:3);
+      d3.select(this).attr('opacity', 1);
     })
     .on('mousemove', e=>{
       const tipW=260;
@@ -1450,6 +1464,7 @@ function initGraph() {
     .on('mouseout', function(e,d){
       tip.style('display','none');
       d3.select(this).select('circle').attr('stroke-width',['vasp_e','vasp_c'].includes(d.group)?2:1.5);
+      d3.select(this).attr('opacity', isExp(d) ? 0.35 : 1);
     });
 
   linkSel
