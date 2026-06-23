@@ -1222,19 +1222,6 @@ function buildAnalytics() {
   }).join('');
 
   /* ── 05 재무 현황 ── */
-  const FINANCIAL = [
-    { vasp:'업비트',  corp:'두나무(주)',              year:2024, rev:17316, op:11863,  cap:34.9,  src:'DART' },
-    { vasp:'빗썸',    corp:'(주)빗썸코리아',         year:2024, rev:4964,  op:1337,   cap:211.8, src:'DART' },
-    { vasp:'코인원',  corp:'(주)코인원',             year:2024, rev:442,   op:-61,    cap:null,  src:'DART' },
-    { vasp:'DSRV',    corp:'(주)디에스알브이랩스',   year:2024, rev:100,   op:30,     cap:null,  src:'자체발표' },
-    { vasp:'코빗',    corp:'(주)코빗',               year:2024, rev:87,    op:-168,   cap:29.2,  src:'DART' },
-    { vasp:'고팍스',  corp:'(주)스트리미',           year:2024, rev:80,    op:-30,    cap:0.9,   src:'NICE' },
-    { vasp:'비댁스',  corp:'비댁스(주)',             year:2024, rev:5.3,   op:-42.5,  cap:6.8,   src:'NICE' },
-    { vasp:'KDAC',    corp:'(주)한국디지털자산수탁', year:2023, rev:1.9,   op:-14,    cap:12,    src:'NICE' },
-  ];
-
-  const fmtRev = v => v >= 10000 ? `${(v/10000).toFixed(2)}조` : v >= 1000 ? `${(v/1000).toFixed(1)}천억` : `${v}억`;
-  const fmtOp  = v => (v > 0 ? '+' : '') + v.toLocaleString() + '억';
 
   const fSorted = [...FINANCIAL].sort((a,b) => b.rev - a.rev);
   const fc = document.getElementById('fin-chart');
@@ -1327,6 +1314,20 @@ const TRAVEL_RULE = {
 };
 
 const EXPIRED_NAMES = new Set(DATA.filter(d => d.expired).map(d => d.name));
+
+const FINANCIAL = [
+  { vasp:'업비트',  corp:'두나무(주)',              year:2024, rev:17316, op:11863,  cap:34.9,  src:'DART' },
+  { vasp:'빗썸',    corp:'(주)빗썸코리아',         year:2024, rev:4964,  op:1337,   cap:211.8, src:'DART' },
+  { vasp:'코인원',  corp:'(주)코인원',             year:2024, rev:442,   op:-61,    cap:null,  src:'DART' },
+  { vasp:'DSRV',    corp:'(주)디에스알브이랩스',   year:2024, rev:100,   op:30,     cap:null,  src:'자체발표' },
+  { vasp:'코빗',    corp:'(주)코빗',               year:2024, rev:87,    op:-168,   cap:29.2,  src:'DART' },
+  { vasp:'고팍스',  corp:'(주)스트리미',           year:2024, rev:80,    op:-30,    cap:0.9,   src:'NICE' },
+  { vasp:'비댁스',  corp:'비댁스(주)',             year:2024, rev:5.3,   op:-42.5,  cap:6.8,   src:'NICE' },
+  { vasp:'KDAC',    corp:'(주)한국디지털자산수탁', year:2023, rev:1.9,   op:-14,    cap:12,    src:'NICE' },
+];
+const FIN_MAP = Object.fromEntries(FINANCIAL.map(f => [f.vasp, f]));
+const fmtRev = v => v >= 10000 ? `${(v/10000).toFixed(2)}조` : v >= 1000 ? `${(v/1000).toFixed(1)}천억` : `${v}억`;
+const fmtOp  = v => (v > 0 ? '+' : '') + v.toLocaleString() + '억';
 
 let graphBuilt = false;
 
@@ -1862,6 +1863,21 @@ function openDetail(name) {
         ${TRAVEL_RULE[d.name] ? `<div class="dp-kv-row"><div class="dp-key">트래블룰</div><div class="dp-val" style="color:#F97316;font-weight:600">${TRAVEL_RULE[d.name]}</div></div>` : ''}
       </div>
     </div>
+
+    ${(() => {
+      const fin = FIN_MAP[d.name];
+      if (!fin) return '';
+      const srcCls = { DART:'dart', NICE:'nice', '자체발표':'self' };
+      const capRow = fin.cap != null ? `<div class="dp-kv-row"><div class="dp-key">자본금</div><div class="dp-val">${fin.cap}억</div></div>` : '';
+      return `<div class="dp-section">
+      <div class="dp-sec-title">재무 현황 <span class="fin-src ${srcCls[fin.src]||''}" style="margin-left:6px">${fin.src} ${fin.year}</span></div>
+      <div class="dp-kv">
+        <div class="dp-kv-row"><div class="dp-key">매출액</div><div class="dp-val" style="font-weight:600">${fmtRev(fin.rev)}</div></div>
+        <div class="dp-kv-row"><div class="dp-key">영업이익</div><div class="dp-val"><span class="fin-profit ${fin.op>0?'pos':'neg'}">${fmtOp(fin.op)}</span></div></div>
+        ${capRow}
+      </div>
+    </div>`;
+    })()}
 
     ${websiteHtml}
     ${relHtml}
