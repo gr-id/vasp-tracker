@@ -324,6 +324,28 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
 .fin-profit.pos { color:#34D399; }
 .fin-profit.neg { color:#F87171; }
 
+/* ── 06 말소 사업자 분석 ── */
+.exit-tag { display:inline-flex; align-items:center; padding:2px 8px; border-radius:4px; font-size:10px; font-family:'Space Grotesk',sans-serif; font-weight:500; letter-spacing:.02em; }
+.exit-sm { background:rgba(239,68,68,.12); color:#F87171; border:1px solid rgba(239,68,68,.25); }
+.exit-gl { background:rgba(245,158,11,.12); color:#FCD34D; border:1px solid rgba(245,158,11,.25); }
+.exit-mg { background:rgba(167,139,250,.12); color:#C4B5FD; border:1px solid rgba(167,139,250,.25); }
+.exit-op { background:rgba(239,68,68,.25); color:#FCA5A5; border:1px solid rgba(239,68,68,.45); }
+.exit-ot { background:rgba(100,116,139,.12); color:#94A3B8; border:1px solid rgba(100,116,139,.25); }
+.surv-row { display:grid; grid-template-columns:120px 1fr 52px; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
+.surv-row:last-child { border-bottom:none; }
+.surv-label { font-size:12px; color:var(--ts); }
+.surv-bar-wrap { position:relative; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.surv-bar-fill { height:100%; border-radius:4px; }
+.surv-pct { font-size:11px; font-family:'Space Grotesk',sans-serif; color:var(--ts); text-align:right; }
+
+/* ── 07 갱신 일정 ── */
+.ren-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:4px; font-size:10px; font-family:'Space Grotesk',sans-serif; font-weight:500; white-space:nowrap; }
+.ren-imminent { background:rgba(239,68,68,.15); color:#F87171; border:1px solid rgba(239,68,68,.3); }
+.ren-upcoming { background:rgba(245,158,11,.15); color:#FCD34D; border:1px solid rgba(245,158,11,.3); }
+.ren-future   { background:rgba(59,130,246,.12); color:#93C5FD; border:1px solid rgba(59,130,246,.25); }
+.ren-far      { background:rgba(100,116,139,.12); color:#94A3B8; border:1px solid rgba(100,116,139,.25); }
+.ren-confirmed { background:rgba(16,185,129,.12); color:#34D399; border:1px solid rgba(16,185,129,.25); }
+
 @media (max-width:600px) {
   .site-header { padding:0 1rem; gap:.75rem; }
   .site-meta { display:none; }
@@ -590,6 +612,54 @@ body { background:var(--bg); color:var(--tp); font-family:'Noto Sans KR',sans-se
           <tbody id="finBody"></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="section-title">06 — 말소 사업자 분석</div>
+    <div class="charts-row" id="exp-summary-cards"></div>
+    <div class="split-row">
+      <div class="split-card">
+        <h3>카테고리별 생존율</h3>
+        <div class="sc-sub">유형별 유효 vs 말소 비율</div>
+        <div id="survRates" style="margin-top:8px"></div>
+      </div>
+      <div class="split-card">
+        <h3>말소 사유 분류</h3>
+        <div class="sc-sub">추정 사유별 말소 사업자 수</div>
+        <div id="exitReasonBars" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="timeline-card">
+      <h3>말소 사업자 목록</h3>
+      <div class="tc-sub">신고수리 후 갱신신고 미이행, 합병·사업 전환, 운영 사태 등으로 말소된 사업자</div>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table class="tenure-table">
+          <thead><tr>
+            <th>사업자</th><th>유형</th><th style="text-align:center">원화</th>
+            <th>신고수리일</th><th>말소 사유</th>
+          </tr></thead>
+          <tbody id="expiredBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">07 — 라이선스 갱신 일정</div>
+    <div class="timeline-card">
+      <h3>갱신신고 예정 일정 <span style="font-size:11px;font-weight:400;color:var(--tm);margin-left:6px">특금법상 3년 주기 · 유효 28개사</span></h3>
+      <div class="tc-sub">신고수리일(또는 최근 갱신수리일) 기준 3년 주기 산정. 프라뱅은 2025.01.03 갱신수리 확인.</div>
+      <div id="renewalClusters" style="margin:16px 0 8px"></div>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table class="tenure-table">
+          <thead><tr>
+            <th>사업자</th>
+            <th>최초 신고수리</th>
+            <th style="text-align:center">갱신수리 확인</th>
+            <th style="text-align:center">다음 갱신 예정</th>
+            <th style="text-align:center">상태</th>
+          </tr></thead>
+          <tbody id="renewalBody"></tbody>
+        </table>
+      </div>
+      <p class="fin-note">* 갱신신고 주기는 특금법 시행령 기준 3년으로 추정한 예상 일정입니다. 실제 갱신일은 FIU 공시 기준으로 달라질 수 있습니다.</p>
     </div>
 
   </div>
@@ -1289,6 +1359,173 @@ function buildAnalytics() {
       <td style="text-align:right"><span class="fin-profit ${opCls}">${fmtOp(d.op)}</span></td>
       <td style="text-align:right;color:var(--tm)">${d.cap != null ? d.cap + '억' : '—'}</td>
       <td style="text-align:center"><span class="fin-src ${srcCls[d.src]||''}">${d.src}</span></td>
+    </tr>`;
+  }).join('');
+
+  /* ── 06 말소 사업자 분석 ── */
+  const EXIT_INFO = {
+    '지닥(GDAC)':         { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '프로비트':           { cls:'exit-gl', label:'글로벌 브랜드 철수' },
+    '후오비코리아':       { cls:'exit-gl', label:'글로벌 브랜드 철수' },
+    '플랫타익스체인지':   { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '한빗코':             { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '비트레이드':         { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '코인엔코인':         { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '마이키핀월렛':       { cls:'exit-ot', label:'사업 전환' },
+    '카르도':             { cls:'exit-mg', label:'KDAC 합병' },
+    '델리오':             { cls:'exit-op', label:'운영 사태 (이용자 피해)' },
+    '페이코인':           { cls:'exit-ot', label:'사업 구조 변경' },
+    '캐셔레스트':         { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '텐앤텐':             { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '에이프로빗':         { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '큐비트':             { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+    '코인빗':             { cls:'exit-sm', label:'소규모 코인마켓 탈락' },
+  };
+
+  const EXPIRED_LIST = DATA.filter(d => d.expired);
+  const EXP_N = EXPIRED_LIST.length;
+  const TOTAL_N = DATA.length;
+  const survPctAll = Math.round(LIVE_N / TOTAL_N * 100);
+
+  /* 요약 카드 */
+  document.getElementById('exp-summary-cards').innerHTML = `
+    <div class="chart-card">
+      <div class="chart-sub">신고수리 총 누계</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;margin:4px 0">${TOTAL_N}개사</div>
+      <div class="chart-sub">2021~2026년 기준</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-sub">현재 유효</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;color:#34D399;margin:4px 0">${LIVE_N}개사</div>
+      <div class="chart-sub">생존율 ${survPctAll}%</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-sub">말소</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;color:#F87171;margin:4px 0">${EXP_N}개사</div>
+      <div class="chart-sub">전체의 ${100-survPctAll}%</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-sub">말소 중 코인마켓 전용</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:600;color:#F59E0B;margin:4px 0">${EXPIRED_LIST.filter(d=>!d.won).length}개사</div>
+      <div class="chart-sub">원화마켓 없는 거래소</div>
+    </div>`;
+
+  /* 카테고리별 생존율 */
+  const expCats = {};
+  DATA.forEach(d => {
+    if (!expCats[d.cat]) expCats[d.cat] = { live:0, exp:0 };
+    d.expired ? expCats[d.cat].exp++ : expCats[d.cat].live++;
+  });
+  document.getElementById('survRates').innerHTML = ['e','c','m'].map(cat => {
+    const cnt = expCats[cat] || { live:0, exp:0 };
+    const total = cnt.live + cnt.exp;
+    const pct = total ? Math.round(cnt.live / total * 100) : 0;
+    return `<div class="surv-row">
+      <span class="surv-label">${CAT_INFO[cat].label}</span>
+      <div class="surv-bar-wrap">
+        <div class="surv-bar-fill" style="width:${pct}%;background:#10B981"></div>
+      </div>
+      <span class="surv-pct"><span style="color:#34D399">${cnt.live}</span>/<span style="color:#F87171">${cnt.exp}</span></span>
+    </div>`;
+  }).join('');
+
+  /* 말소 사유 바 */
+  const reasonMap = {};
+  EXPIRED_LIST.forEach(d => {
+    const info = EXIT_INFO[d.name] || { cls:'exit-ot', label:'미분류' };
+    if (!reasonMap[info.label]) reasonMap[info.label] = { cls: info.cls, count:0 };
+    reasonMap[info.label].count++;
+  });
+  const clsColor = { 'exit-sm':'#EF4444','exit-gl':'#F59E0B','exit-mg':'#A78BFA','exit-op':'#FCA5A5','exit-ot':'#64748B' };
+  const maxR = Math.max(...Object.values(reasonMap).map(r => r.count));
+  document.getElementById('exitReasonBars').innerHTML = Object.entries(reasonMap)
+    .sort((a,b) => b[1].count - a[1].count)
+    .map(([label, { cls, count }]) => `<div class="surv-row">
+      <span class="surv-label" style="font-size:11px">${label}</span>
+      <div class="surv-bar-wrap">
+        <div class="surv-bar-fill" style="width:${Math.round(count/maxR*100)}%;background:${clsColor[cls]||'#64748B'}"></div>
+      </div>
+      <span class="surv-pct">${count}개</span>
+    </div>`).join('');
+
+  /* 말소 목록 테이블 */
+  document.getElementById('expiredBody').innerHTML = [...EXPIRED_LIST]
+    .sort((a,b) => a.regDate.localeCompare(b.regDate))
+    .map(d => {
+      const ci = CAT_INFO[d.cat];
+      const info = EXIT_INFO[d.name] || { cls:'exit-ot', label:'미분류' };
+      return `<tr>
+        <td><span class="tenure-name">${d.name}</span><br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
+        <td><span class="type-badge ${ci.cls}" style="font-size:10px;padding:2px 6px"><span class="bd"></span>${ci.label}</span></td>
+        <td style="text-align:center">${d.won ? '<span style="color:#34D399;font-size:13px">✓</span>' : '<span style="color:var(--tm)">—</span>'}</td>
+        <td><span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--tm)">${d.regDate}</span></td>
+        <td><span class="exit-tag ${info.cls}">${info.label}</span></td>
+      </tr>`;
+    }).join('');
+
+  /* ── 07 라이선스 갱신 일정 ── */
+  const TODAY_REN = new Date('2026-06-25');
+
+  function calcNextRenewal(d) {
+    const base = d.renewal ? new Date(d.renewal) : new Date(d.regDate);
+    let yr = base.getFullYear();
+    let next = new Date(base);
+    while (next <= TODAY_REN) {
+      yr += 3;
+      next = new Date(base);
+      next.setFullYear(yr);
+    }
+    return next;
+  }
+
+  function renewalStatus(nextDate) {
+    const days = (nextDate - TODAY_REN) / 86400000;
+    if (days <= 180) return { cls:'ren-imminent', label:'6개월 이내' };
+    if (days <= 540) return { cls:'ren-upcoming', label:'18개월 이내' };
+    if (days <= 900) return { cls:'ren-future',   label: nextDate.getFullYear() + '년 예정' };
+    return              { cls:'ren-far',           label: nextDate.getFullYear() + '년 예정' };
+  }
+
+  const renewalData = LIVE.map(d => ({ ...d, nextRenewal: calcNextRenewal(d) }))
+    .sort((a,b) => a.nextRenewal - b.nextRenewal);
+
+  /* 연도별 클러스터 요약 */
+  const clusterYears = {};
+  renewalData.forEach(d => {
+    const y = d.nextRenewal.getFullYear();
+    (clusterYears[y] = clusterYears[y] || []).push(d.name);
+  });
+  const maxCluster = Math.max(...Object.values(clusterYears).map(v => v.length));
+  const yrColor = { 2026:'#EF4444', 2027:'#F59E0B', 2028:'#3B82F6', 2029:'#64748B' };
+  document.getElementById('renewalClusters').innerHTML = Object.entries(clusterYears)
+    .sort((a,b) => a[0] - b[0])
+    .map(([year, names]) => {
+      const pct = Math.round(names.length / maxCluster * 100);
+      const col = yrColor[+year] || '#64748B';
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:${col};min-width:44px">${year}년</span>
+          <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${col};border-radius:4px"></div>
+          </div>
+          <span style="font-size:11px;color:var(--tm);min-width:24px;text-align:right">${names.length}개사</span>
+        </div>
+        <div style="font-size:11px;color:var(--tm);padding-left:54px;line-height:1.7">${names.join(' · ')}</div>
+      </div>`;
+    }).join('');
+
+  /* 갱신 일정 테이블 */
+  document.getElementById('renewalBody').innerHTML = renewalData.map(d => {
+    const { cls, label } = renewalStatus(d.nextRenewal);
+    const nextStr = d.nextRenewal.toISOString().slice(0,10);
+    return `<tr>
+      <td><span class="tenure-name">${d.name}</span><br><span style="font-size:11px;color:var(--tm)">${d.corp}</span></td>
+      <td><span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--tm)">${d.regDate}</span></td>
+      <td style="text-align:center">${d.renewal
+        ? `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#34D399">${d.renewal} ✓</span>`
+        : '<span style="color:var(--tm);font-size:11px">—</span>'}</td>
+      <td style="text-align:center"><span style="font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--tp);font-weight:500">${nextStr}</span></td>
+      <td style="text-align:center"><span class="ren-badge ${cls}">${label}</span></td>
     </tr>`;
   }).join('');
 }
